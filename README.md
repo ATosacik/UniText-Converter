@@ -22,5 +22,3 @@ PowerPoint and normal PDFs work 100% offline/client-side.
 ## License
 
 MIT License – free to use, modify, whatever. Just keep the copyright notice.
-
-Enjoy bro 😎

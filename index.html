@@ -3,53 +3,65 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>UniText Converter</title>
+    <title>VoidText</title>
     <script src="https://unpkg.com/pizzip@3.1.4/dist/pizzip.js"></script>
     <script src="https://unpkg.com/pizzip@3.1.4/dist/pizzip-utils.js"></script>
     <script src="https://unpkg.com/docxtemplater@3.42.0/build/docxtemplater.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip-utils/0.0.2/jszip-utils.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@v4/dist/tesseract.min.js"></script>
     <style>
+        :root{
+            --bg: #0b0b0c;
+            --panel: #141416;
+            --muted: #8b8b8b;
+            --border: #262628;
+            --accent: #2fa6ff;
+            --accent-strong: #1b8fe0;
+            --success: #4caf50;
+            --danger: #cc5555;
+        }
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #0a0a0a;
-            color: #e0e0e0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(180deg, #060606 0%, var(--bg) 100%);
+            color: #e8eef6;
             min-height: 100vh;
-            padding: 20px;
-            line-height: 1.6;
+            padding: 18px;
+            line-height: 1.55;
+            -webkit-font-smoothing:antialiased;
         }
         .container {
-            max-width: 1200px;
+            max-width: 1100px;
             margin: 0 auto;
-            background: #1a1a1a;
-            border-radius: 10px;
-            border: 1px solid #333;
+            background: var(--panel);
+            border-radius: 12px;
+            border: 1px solid var(--border);
             overflow: hidden;
         }
         header {
-            background: #000;
-            padding: 30px;
+            background: linear-gradient(90deg, rgba(255,255,255,0.02), rgba(0,0,0,0.06));
+            padding: 26px 22px;
             text-align: center;
-            border-bottom: 1px solid #333;
+            border-bottom: 1px solid rgba(255,255,255,0.03);
         }
         h1 {
-            font-size: 2.5em;
-            margin-bottom: 10px;
+            font-size: 2rem;
+            margin-bottom: 6px;
             color: #fff;
-            letter-spacing: 1px;
+            letter-spacing: 0.6px;
         }
         .subtitle {
-            color: #888;
-            font-size: 1.1em;
+            color: var(--muted);
+            font-size: 0.98rem;
         }
         .main-content {
-            padding: 30px;
+            padding: 26px;
         }
         /* Converter type selector */
         .converter-type-selector {
@@ -81,7 +93,7 @@
         .converter-option.active {
             background: #333;
             border-color: #666;
-            border-width: 2px;
+            box-shadow: 0 0 0 2px rgba(102,102,102,0.12) inset;
         }
         .converter-icon {
             font-size: 2.5em;
@@ -100,6 +112,7 @@
         /* Converter-specific sections */
         .converter-section {
             display: none;
+            transition: min-height 0.25s ease;
         }
         .converter-section.active {
             display: block;
@@ -250,7 +263,7 @@
         .method-option.active {
             background: #333;
             border-color: #666;
-            border-width: 2px;
+            box-shadow: 0 0 0 2px rgba(102,102,102,0.12) inset;
         }
         .method-icon {
             font-size: 2.5em;
@@ -294,15 +307,17 @@
         .secure-save-container {
             display: flex;
             align-items: center;
-            margin-top: 10px;
-            padding: 8px 0;
+            margin-top: 12px;
+            padding: 12px 0;
+            gap: 12px;
         }
         .toggle-switch {
             position: relative;
             display: inline-block;
-            width: 40px;
-            height: 20px;
-            margin-right: 10px;
+            width: 45px;
+            height: 24px;
+            margin: 0;
+            flex-shrink: 0;
         }
         .toggle-switch input {
             opacity: 0;
@@ -355,23 +370,81 @@
             padding: 2px 6px;
             border-radius: 4px;
             border: 1px solid #555;
+            flex-shrink: 0;
+        }
+        .api-key-section {
+            background: #2a2a2a;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #333;
+        }   
+        .api-key-section > label {          
+            display: block;   
+            margin-bottom: 10px;            
+            font-weight: bold;            
+            color: #fff;
+        }
+        .api-key-link {
+            font-size: 0.8em;
+            color: #666;
+            margin-top: 8px;
+            display: block;
+        }
+        .api-key-link a {
+            color: #aaa;
+            text-decoration: none;
+        }
+        .api-key-link a:hover {
+            text-decoration: underline;
         }
         /* Instructions */
         .instructions {
             background: #222;
-            padding: 20px;
+            padding: 0;
             border-radius: 8px;
             margin-bottom: 20px;
             border: 1px solid #333;
             font-size: 0.9em;
         }
-        .instructions h3 {
+        .instructions-header {
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            user-select: none;
+        }
+        .instructions-header:hover {
+            background: #252525;
+        }
+        .instructions-header h3 {
             color: #fff;
-            margin-bottom: 10px;
+            margin: 0;
+            font-size: 1.1em;
+        }
+        .instructions-toggle {
+            font-size: 1.2em;
+            color: #888;
+            transition: transform 0.3s ease;
+        }
+        .instructions-toggle.collapsed {
+            transform: rotate(-90deg);
+        }
+        .instructions-content {
+            padding: 0 20px 20px 20px;
+            display: block;
+            max-height: 500px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        .instructions-content.collapsed {
+            display: none;
         }
         .instructions ol {
             margin-left: 20px;
             color: #888;
+            margin-top: 0;
         }
         .instructions li {
             margin-bottom: 8px;
@@ -450,6 +523,23 @@
         }
         .toggle-separator-btn.active {
             background: #777;
+        }
+        .file-action-btn {
+            background: #555;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin: 0 6px;
+        }
+        .file-action-btn:hover {
+            background: #666;
         }
         .toggle-all-btn {
             background: #555;
@@ -704,12 +794,54 @@
             border-radius: 6px;
             border: 1px solid #333;
         }
+        .remove-result-btn {
+            background: #555;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.85em;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .remove-result-btn:hover {
+            background: #666;
+        }
+        .undo-section {
+            display: none;
+            margin: 15px 0;
+            padding: 12px 15px;
+            background: #2a2a2a;
+            border: 1px solid #444;
+            border-radius: 6px;
+            text-align: center;
+        }
+        .undo-section.show {
+            display: block;
+        }
+        .undo-btn {
+            background: #555;
+            color: white;
+            border: none;
+            padding: 6px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: all 0.3s ease;
+            margin-left: 10px;
+        }
+        .undo-btn:hover {
+            background: #666;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>UniText Converter</h1>
+            <h1>VoidText</h1>
             <p class="subtitle">Universal Text Converter - Extract text from Images, PowerPoint, and PDF files</p>
         </header>
         <div class="main-content">
@@ -735,37 +867,53 @@
             </div>
 
             <div class="converter-section active" id="imageConverter">
+                <div class="api-key-section" id="imageApiSection">
+                    <label>API Key:</label>
+                    <input type="password" id="imageApiKey" class="api-key-input"
+                           placeholder="Enter your OCR.space API key here..." oninput="handleKeyInput(this)">
+                    <div class="secure-save-container">
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="secureSaveCheckbox" onchange="toggleSecureSave()">
+                            <span class="slider"></span>
+                        </label>
+                        <label for="secureSaveCheckbox" class="secure-label">
+                            Remember Key securely <span class="secure-badge">No Server</span>
+                        </label>
+                    </div>
+                    <div class="api-key-link">
+                        For free testing, leave empty. <a href="https://ocr.space/ocrapi" target="_blank">Get FREE API Key here</a>
+                    </div>
+                </div>
                 <div class="instructions">
-                    <h3>Image to Text - How to Use:</h3>
-                    <ol>
-                        <li>Get a free API key from OCR.space (link below)</li>
-                        <li>Enter your API key below</li>
-                        <li>Upload images using drag & drop or file browser</li>
-                        <li>Click "Convert to Text" to extract text from all images</li>
-                        <li>Use "Copy Text" to copy individual results or "Copy All Text" for everything</li>
-                    </ol>
-                    <div style="background: #333; padding: 10px 15px; border-radius: 5px; margin: 10px 0; border-left: 4px solid #666;">
-                        <strong>Get FREE API Key:</strong><br>
-                        <a href="https://ocr.space/ocrapi" target="_blank" style="color: #aaa;">Click here to get FREE OCR.space API Key (25,000 requests/month)</a>
+                    <div class="instructions-header" onclick="toggleInstructions(this)">
+                        <h3>How to Use</h3>
+                        <span class="instructions-toggle collapsed">▼</span>
+                    </div>
+                    <div class="instructions-content collapsed">
+                        <ol>
+                            <li>Your images are processed offline on your device</li>
+                            <li>Upload images using drag & drop or file browser</li>
+                            <li>Click "Convert to Text" to extract text from all images</li>
+                            <li>Use "Copy Text" to copy individual results or "Copy All Text" for everything</li>
+                        </ol>
                     </div>
                 </div>
                 <div class="method-selector">
-                    <div class="api-key-section">
-                        <label><strong>API Key:</strong></label>
-                        <input type="password" id="imageApiKey" class="api-key-input"
-                               placeholder="Enter your OCR.space API key here..." oninput="handleKeyInput(this)">
-                        <div class="secure-save-container">
-                            <label class="toggle-switch">
-                                <input type="checkbox" id="secureSaveCheckbox" onchange="toggleSecureSave()">
-                                <span class="slider"></span>
-                            </label>
-                            <label for="secureSaveCheckbox" class="secure-label">
-                                Remember Key securely <span class="secure-badge">No Server</span>
-                            </label>
+                    <label><strong>Select Conversion Method:</strong></label>
+                    <div class="method-options">
+                        <div class="method-option active" onclick="selectMethod('client','image')">
+                            <div class="method-icon">▶</div>
+                            <div class="method-name">Client-side Extraction</div>
+                            <div class="method-desc">Extract text directly in your browser. Fast and private.</div>
                         </div>
-                        <div style="font-size: 0.8em; color: #666; margin-top: 5px;">
-                            Don't have a key? <a href="https://ocr.space/ocrapi" target="_blank" style="color: #aaa;">Get FREE API Key here</a>
+                        <div class="method-option" onclick="selectMethod('cloud','image')">
+                            <div class="method-icon">☁</div>
+                            <div class="method-name">Cloud API (OCR)</div>
+                            <div class="method-desc">Use OCR.space API for scanned images.</div>
                         </div>
+                    </div>
+                    <div class="conversion-method" id="imageCloudMethod">
+                        <label>Cloud OCR will use the API Key above when selected.</label>
                     </div>
                 </div>
                 <div class="upload-section" id="imageDropZone">
@@ -782,15 +930,37 @@
             </div>
 
             <div class="converter-section" id="powerpointConverter">
+                <div class="api-key-section" id="powerpointApiSection">
+                    <label>API Key:</label>
+                    <input type="password" id="powerpointApiKey" class="api-key-input"
+                           placeholder="Enter your OCR.space API key here..." oninput="handleKeyInput(this)">
+                    <div class="secure-save-container">
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="powerpointSecureSave" onchange="toggleSecureSave()">
+                            <span class="slider"></span>
+                        </label>
+                        <label for="powerpointSecureSave" class="secure-label">
+                            Remember Key securely <span class="secure-badge">No Server</span>
+                        </label>
+                    </div>
+                    <div class="api-key-link">
+                        For free testing, leave empty. <a href="https://ocr.space/ocrapi" target="_blank">Get FREE API Key here</a>
+                    </div>
+                </div>
                 <div class="instructions">
-                    <h3>PowerPoint to Text - How to Use:</h3>
-                    <ol>
-                        <li>Upload your PowerPoint (.pptx) file using drag & drop or file browser</li>
-                        <li>Choose a conversion method (Client-side for immediate results or Cloud API for better accuracy)</li>
-                        <li>Click "Extract Text" to process the presentation</li>
-                        <li>View extracted text from each slide</li>
-                        <li>Use "Copy Text" on individual slides or "Copy All Slides" for entire presentation</li>
-                    </ol>
+                    <div class="instructions-header" onclick="toggleInstructions(this)">
+                        <h3>How to Use</h3>
+                        <span class="instructions-toggle collapsed">▼</span>
+                    </div>
+                    <div class="instructions-content collapsed">
+                        <ol>
+                            <li>Upload your PowerPoint (.pptx) file using drag & drop or file browser</li>
+                            <li>Choose a conversion method (Client-side for immediate results or Cloud API for better accuracy)</li>
+                            <li>Click "Extract Text" to process the presentation</li>
+                            <li>View extracted text from each slide</li>
+                            <li>Use "Copy Text" on individual slides or "Copy All Slides" for entire presentation</li>
+                        </ol>
+                    </div>
                 </div>
                 <div class="method-selector">
                     <label><strong>Select Conversion Method:</strong></label>
@@ -804,14 +974,6 @@
                             <div class="method-icon">☁</div>
                             <div class="method-name">Cloud API (OCR)</div>
                             <div class="method-desc">Convert slides to images and use OCR. More accurate.</div>
-                        </div>
-                    </div>
-                    <div class="conversion-method" id="powerpointCloudMethod">
-                        <label><strong>OCR API Key (Optional):</strong></label>
-                        <input type="password" id="powerpointApiKey" class="api-key-input"
-                               placeholder="Enter your OCR.space API key (optional)..." oninput="handleKeyInput(this)">
-                        <div style="font-size: 0.8em; color: #666; margin-top: 5px;">
-                            For free testing, leave empty. <a href="https://ocr.space/ocrapi" target="_blank" style="color: #aaa;">Get FREE API Key here</a>
                         </div>
                     </div>
                 </div>
@@ -829,15 +991,37 @@
             </div>
 
             <div class="converter-section" id="pdfConverter">
+                <div class="api-key-section" id="pdfApiSection">
+                    <label>API Key:</label>
+                    <input type="password" id="pdfApiKey" class="api-key-input"
+                           placeholder="Enter your OCR.space API key here..." oninput="handleKeyInput(this)">
+                    <div class="secure-save-container">
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="pdfSecureSave" onchange="toggleSecureSave()">
+                            <span class="slider"></span>
+                        </label>
+                        <label for="pdfSecureSave" class="secure-label">
+                            Remember Key securely <span class="secure-badge">No Server</span>
+                        </label>
+                    </div>
+                    <div class="api-key-link">
+                        For free testing, leave empty. <a href="https://ocr.space/ocrapi" target="_blank">Get FREE API Key here</a>
+                    </div>
+                </div>
                 <div class="instructions">
-                    <h3>PDF to Text - How to Use:</h3>
-                    <ol>
-                        <li>Upload your PDF file using drag & drop or file browser</li>
-                        <li>Choose a conversion method (Client-side for immediate results or Cloud API for scanned PDFs)</li>
-                        <li>Click "Extract Text" to process the document</li>
-                        <li>View extracted text from each page</li>
-                        <li>Use "Copy Text" on individual pages or "Copy All Pages" for entire document</li>
-                    </ol>
+                    <div class="instructions-header" onclick="toggleInstructions(this)">
+                        <h3>How to Use</h3>
+                        <span class="instructions-toggle collapsed">▼</span>
+                    </div>
+                    <div class="instructions-content collapsed">
+                        <ol>
+                            <li>Upload your PDF file using drag & drop or file browser</li>
+                            <li>Choose a conversion method (Client-side for immediate results or Cloud API for scanned PDFs)</li>
+                            <li>Click "Extract Text" to process the document</li>
+                            <li>View extracted text from each page</li>
+                            <li>Use "Copy Text" on individual pages or "Copy All Pages" for entire document</li>
+                        </ol>
+                    </div>
                 </div>
                 <div class="method-selector">
                     <label><strong>Select Conversion Method:</strong></label>
@@ -851,14 +1035,6 @@
                             <div class="method-icon">☁</div>
                             <div class="method-name">Cloud API (OCR)</div>
                             <div class="method-desc">Convert scanned PDFs using OCR. Works with image-based PDFs.</div>
-                        </div>
-                    </div>
-                    <div class="conversion-method" id="pdfCloudMethod">
-                        <label><strong>OCR API Key (Optional):</strong></label>
-                        <input type="password" id="pdfApiKey" class="api-key-input"
-                               placeholder="Enter your OCR.space API key (optional)..." oninput="handleKeyInput(this)">
-                        <div style="font-size: 0.8em; color: #666; margin-top: 5px;">
-                            For free testing, leave empty. <a href="https://ocr.space/ocrapi" target="_blank" style="color: #aaa;">Get FREE API Key here</a>
                         </div>
                     </div>
                 </div>
@@ -883,9 +1059,14 @@
                 </div>
                 <p class="status-text" id="statusText">Starting conversion...</p>
             </div>
-            <button class="convert-btn" id="convertBtn" onclick="processFiles()" disabled>
-                Convert to Text
-            </button>
+            <div style="display:flex; gap:10px; justify-content:center; margin-bottom:30px;">
+                <button class="convert-btn" id="convertBtn" onclick="processFiles()" disabled>
+                    Convert to Text
+                </button>
+                <button class="file-action-btn" id="clearFilesBtn" onclick="clearInputFiles()">
+                    Clear Input Files
+                </button>
+            </div>
             <div class="stats" id="statsSection">
                 <div class="stat-item">
                     <div class="stat-value" id="totalItems">0</div>
@@ -909,6 +1090,10 @@
                     Copy All Text
                 </button>
             </div>
+            <div class="undo-section" id="undoSection">
+                <span id="undoText">Item removed</span>
+                <button class="undo-btn" onclick="undoLastRemove()">Undo</button>
+            </div>
             <div class="results-section" id="resultsSection">
                 <div class="results-controls">
                     <h2 style="color: #fff;" id="resultsTitle">Extracted Text</h2>
@@ -921,12 +1106,15 @@
                             <option value="size">File Size (Small to Large)</option>
                             <option value="sizeDesc">File Size (Large to Small)</option>
                         </select>
-                        <button class="toggle-separator-btn active" id="toggleSeparatorBtn" onclick="toggleSeparators()">
-                            <span id="separatorText">Include Separators</span>
-                        </button>
-                        <button class="toggle-all-btn" id="toggleAllBtn" onclick="toggleAll()">
-                            <span class="collapse-icon" id="toggleAllIcon">▼</span> Toggle All
-                        </button>
+                                <button class="toggle-separator-btn active" id="toggleSeparatorBtn" onclick="toggleSeparators()">
+                                    <span id="separatorText">Include Separators</span>
+                                </button>
+                                <button class="remove-result-btn" id="clearResultsBtn" onclick="clearAllResults()" title="Remove All Results">
+                                    Remove All Results
+                                </button>
+                                <button class="toggle-all-btn" id="toggleAllBtn" onclick="toggleAll()">
+                                    <span class="collapse-icon" id="toggleAllIcon">▼</span> Toggle All
+                                </button>
                     </div>
                 </div>
                 <div class="results-grid" id="resultsGrid"></div>
@@ -945,6 +1133,7 @@
         let extractedResults = [];
         let separatorsEnabled = true;
         let allExpanded = true;
+        let removedItems = []; // For undo functionality
 
         // Secure key storage
         const SECURE_STORAGE_KEY = 'utc_secure_api_key';
@@ -961,7 +1150,11 @@
                 const realKey = deobfuscateKey(savedKey);
                 if (realKey) {
                     document.querySelectorAll('.api-key-input').forEach(input => input.value = realKey);
-                    document.getElementById('secureSaveCheckbox').checked = true;
+                    // Ensure all converter secure-save checkboxes reflect stored key
+                    ['secureSaveCheckbox','powerpointSecureSave','pdfSecureSave'].forEach(id => {
+                        const el = document.getElementById(id);
+                        if (el) el.checked = true;
+                    });
                 }
             }
         };
@@ -971,14 +1164,28 @@
             document.querySelectorAll('.api-key-input').forEach(inp => {
                 if (inp !== inputElement) inp.value = val;
             });
-            if (document.getElementById('secureSaveCheckbox').checked) {
+            if (document.getElementById('secureSaveCheckbox').checked || 
+                document.getElementById('powerpointSecureSave').checked ||
+                document.getElementById('pdfSecureSave').checked) {
                 localStorage.setItem(SECURE_STORAGE_KEY, obfuscateKey(val));
             }
         }
 
         function toggleSecureSave() {
-            const isChecked = document.getElementById('secureSaveCheckbox').checked;
-            const currentKey = document.getElementById('imageApiKey').value;
+            const checkboxes = [
+                document.getElementById('secureSaveCheckbox'),
+                document.getElementById('powerpointSecureSave'),
+                document.getElementById('pdfSecureSave')
+            ];
+            const isChecked = checkboxes.some(cb => cb && cb.checked);
+            const currentKey = document.getElementById('imageApiKey').value || 
+                             document.getElementById('powerpointApiKey').value ||
+                             document.getElementById('pdfApiKey').value;
+            
+            checkboxes.forEach(cb => {
+                if (cb) cb.checked = isChecked;
+            });
+            
             if (isChecked && currentKey) {
                 localStorage.setItem(SECURE_STORAGE_KEY, obfuscateKey(currentKey));
                 showNotification('API Key saved securely to browser storage');
@@ -987,6 +1194,35 @@
                 showNotification('Saved API Key removed');
             }
         }
+
+        function toggleInstructions(header) {
+            const toggle = header.querySelector('.instructions-toggle');
+            const content = header.nextElementSibling;
+            toggle.classList.toggle('collapsed');
+            content.classList.toggle('collapsed');
+        }
+
+        // Ensure converter sections keep a consistent height to avoid layout jumps
+        function normalizeConverterHeights() {
+            const sections = Array.from(document.querySelectorAll('.converter-section'));
+            if (!sections.length) return;
+            let max = 0;
+            const prevDisplays = new Map();
+            sections.forEach(sec => {
+                prevDisplays.set(sec, sec.style.display || '');
+                if (getComputedStyle(sec).display === 'none') sec.style.display = 'block';
+                const h = sec.offsetHeight;
+                if (h > max) max = h;
+                // restore will happen after loop
+            });
+            sections.forEach(sec => {
+                sec.style.display = prevDisplays.get(sec);
+                sec.style.minHeight = max + 'px';
+            });
+        }
+
+        window.addEventListener('load', () => normalizeConverterHeights());
+        window.addEventListener('resize', () => normalizeConverterHeights());
 
         // DOM Elements
         const dropZones = {
@@ -1029,9 +1265,11 @@
 
         function selectConverterType(type) {
             currentType = type;
+            // add active to target first to avoid brief no-active state
+            const target = document.querySelector(`.converter-option[data-type="${type}"]`);
+            if (target) target.classList.add('active');
             document.querySelectorAll('.converter-option').forEach(opt => {
-                opt.classList.remove('active');
-                if (opt.dataset.type === type) opt.classList.add('active');
+                if (opt !== target) opt.classList.remove('active');
             });
             document.querySelectorAll('.converter-section').forEach(sec => sec.classList.remove('active'));
             document.getElementById(type + 'Converter').classList.add('active');
@@ -1040,11 +1278,11 @@
 
         function selectMethod(method, type) {
             currentMethod = method;
-            const methodOptions = document.querySelectorAll(`#${type}Converter .method-option`);
-            methodOptions.forEach(opt => opt.classList.remove('active'));
-            methodOptions.forEach(opt => {
-                if (opt.onclick.toString().includes(`'${method}'`)) opt.classList.add('active');
-            });
+            const methodOptions = Array.from(document.querySelectorAll(`#${type}Converter .method-option`));
+            // add active to matching option first, then remove from others
+            const target = methodOptions.find(opt => opt.onclick && opt.onclick.toString().includes(`'${method}'`));
+            if (target) target.classList.add('active');
+            methodOptions.forEach(opt => { if (opt !== target) opt.classList.remove('active'); });
             const cloudMethodDiv = document.getElementById(type + 'CloudMethod');
             if (cloudMethodDiv) {
                 cloudMethodDiv.classList.toggle('active', method === 'cloud');
@@ -1116,7 +1354,6 @@
 
         function updateConvertButton() {
             convertBtn.disabled = files.length === 0;
-            if (files.length === 0) resetState();
         }
 
         function resetState() {
@@ -1156,9 +1393,46 @@
         }
 
         async function processImages() {
-            const apiKey = document.getElementById('imageApiKey').value.trim();
-            if (!apiKey) throw new Error("Please enter an OCR.space API Key.");
+            const method = currentMethod || 'client';
+            if (method === 'client') {
+                await processImagesOffline();
+            } else {
+                await processImagesCloud();
+            }
+        }
 
+        async function processImagesOffline() {
+            let completed = 0;
+            updateProgress(0, `Processing 0/${files.length} images...`);
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                try {
+                    const text = await performOfflineOCR(file);
+                    extractedResults.push({
+                        fileName: file.name,
+                        fileSize: file.size,
+                        type: 'image',
+                        content: [{ id: 1, text: text }],
+                        originalFile: file
+                    });
+                } catch (e) {
+                    extractedResults.push({
+                        fileName: file.name,
+                        fileSize: file.size,
+                        type: 'image',
+                        content: [{ id: 1, text: `Error: ${e.message}` }],
+                        error: true,
+                        originalFile: file
+                    });
+                }
+                completed++;
+                updateProgress((completed / files.length) * 100, `Processing ${completed}/${files.length} images...`);
+            }
+        }
+
+        async function processImagesCloud() {
+            const apiKey = document.getElementById('imageApiKey').value.trim();
+            // API key is optional; if not provided, cloud will likely fail but we keep behavior consistent
             let completed = 0;
             updateProgress(0, `Processing 0/${files.length} images...`);
             for (let i = 0; i < files.length; i++) {
@@ -1185,6 +1459,30 @@
                 completed++;
                 updateProgress((completed / files.length) * 100, `Processing ${completed}/${files.length} images...`);
             }
+        }
+
+        async function performOfflineOCR(file) {
+            return new Promise(async (resolve, reject) => {
+                try {
+                    const reader = new FileReader();
+                    reader.onload = async (e) => {
+                        try {
+                            const { data: { text } } = await Tesseract.recognize(
+                                e.target.result,
+                                'eng',
+                                { logger: m => updateProgress(m.progress * 100, `Scanning image: ${Math.round(m.progress * 100)}%`) }
+                            );
+                            resolve(text || "No text found.");
+                        } catch (err) {
+                            reject(new Error("OCR processing failed: " + err.message));
+                        }
+                    };
+                    reader.onerror = () => reject(new Error("Error reading file."));
+                    reader.readAsDataURL(file);
+                } catch (err) {
+                    reject(err);
+                }
+            });
         }
 
         async function performOCR(file, apiKey) {
@@ -1404,6 +1702,9 @@
                             <button class="copy-presentation-btn" onclick="event.stopPropagation(); copyFileContent(${fileIndex})">
                                 Copy File Text
                             </button>
+                            <button class="remove-result-btn" onclick="event.stopPropagation(); removeResult(${fileIndex})">
+                                Remove
+                            </button>
                         </div>
                     </div>
                 `;
@@ -1532,6 +1833,113 @@
             notif.innerText = msg;
             notif.classList.add('show');
             setTimeout(() => notif.classList.remove('show'), 3000);
+        }
+
+        function removeResult(fileIndex) {
+            if (fileIndex < 0 || fileIndex >= extractedResults.length) return;
+            
+            // Store the removed item for undo
+            const removedItem = extractedResults[fileIndex];
+            removedItems.push({
+                item: removedItem,
+                index: fileIndex
+            });
+
+            // Remove from results
+            extractedResults.splice(fileIndex, 1);
+            
+            // Show undo section
+            const undoSection = document.getElementById('undoSection');
+            const undoText = document.getElementById('undoText');
+            undoText.textContent = `"${removedItem.fileName}" removed`;
+            undoSection.classList.add('show');
+            
+            // Hide undo section after 10 seconds
+            setTimeout(() => {
+                if (undoSection.classList.contains('show')) {
+                    undoSection.classList.remove('show');
+                    removedItems = [];
+                }
+            }, 10000);
+            
+            // Re-render results
+            renderGrid();
+            updateStats();
+            
+            // Hide results if no items left
+            if (extractedResults.length === 0) {
+                resultsSection.style.display = 'none';
+                statsSection.style.display = 'none';
+                copyAllSection.style.display = 'none';
+            }
+        }
+
+        function undoLastRemove() {
+            if (removedItems.length === 0) return;
+            
+            const { item, index } = removedItems.pop();
+            
+            // Restore the item
+            extractedResults.splice(index, 0, item);
+            
+            // Hide undo section if no more items to restore
+            if (removedItems.length === 0) {
+                document.getElementById('undoSection').classList.remove('show');
+            }
+            
+            // Show results sections if they were hidden
+            if (extractedResults.length > 0) {
+                resultsSection.style.display = 'block';
+                statsSection.style.display = 'flex';
+                copyAllSection.style.display = 'block';
+            }
+            
+            // Re-render results
+            renderGrid();
+            updateStats();
+            showNotification('Item restored!');
+        }
+
+        function clearInputFiles() {
+            if (files.length === 0) return showNotification('No input files to clear');
+            files = [];
+            Object.values(previewAreas).forEach(el => el.innerHTML = '');
+            updateConvertButton();
+            showNotification('Input files cleared');
+        }
+
+        function clearAllResults() {
+            if (extractedResults.length === 0) return showNotification('No results to remove');
+
+            // push all results to removedItems for undo (preserve indices)
+            for (let i = extractedResults.length - 1; i >= 0; i--) {
+                removedItems.push({ item: extractedResults[i], index: i });
+            }
+
+            // clear results
+            extractedResults = [];
+            renderGrid();
+            updateStats();
+
+            // hide results UI
+            resultsSection.style.display = 'none';
+            statsSection.style.display = 'none';
+            copyAllSection.style.display = 'none';
+
+            // show undo
+            const undoSection = document.getElementById('undoSection');
+            const undoText = document.getElementById('undoText');
+            undoText.textContent = `All results removed`;
+            undoSection.classList.add('show');
+
+            setTimeout(() => {
+                if (undoSection.classList.contains('show')) {
+                    undoSection.classList.remove('show');
+                    removedItems = [];
+                }
+            }, 10000);
+
+            showNotification('All results removed');
         }
     </script>
 </body>

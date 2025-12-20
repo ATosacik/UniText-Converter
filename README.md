@@ -2,8 +2,6 @@
 
 **Universal Text Converter** – Extract text from Images, PowerPoint, and PDF files.
 
-![VoidText Preview](screenshots/preview.png)
-
 ---
 
 ## Features

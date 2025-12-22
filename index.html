@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VoidText</title>
+    <title>VoidText - Text Extractor</title>
     <script src="https://unpkg.com/pizzip@3.1.4/dist/pizzip.js"></script>
     <script src="https://unpkg.com/pizzip@3.1.4/dist/pizzip-utils.js"></script>
     <script src="https://unpkg.com/docxtemplater@3.42.0/build/docxtemplater.js"></script>
@@ -13,28 +13,88 @@
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@v4/dist/tesseract.min.js"></script>
     <style>
         :root{
-            --bg: #0b0b0c;
-            --panel: #141416;
-            --muted: #8b8b8b;
+            /* Core background / panels */
+            --bg: #0b0b0c; /* page background end */
+            --bg-strong: #060606; /* background solid to avoid overscroll flash */
+            --panel: #141416; /* main container */
+            --panel-2: #222; /* section / card background */
+            --panel-3: #2a2a2a; /* alternate panel */
+
+            /* Text colors */
+            --text: #e8eef6; /* primary text */
+            --text-strong: #ffffff; /* headings */
+            --text-muted: #aaa; /* secondary text */
+            --muted: #8b8b8b; /* utility muted */
+            --muted-2: #666; /* slightly darker muted */
+
+            /* Borders & accents */
             --border: #262628;
-            --accent: #2fa6ff;
-            --accent-strong: #1b8fe0;
-            --success: #4caf50;
-            --danger: #cc5555;
+            --border-strong: #333;
+            /* Accent now neutral (no blues) */
+            --accent: #bdbdbd; /* light neutral accent */
+            --accent-strong: #9e9e9e; /* slightly darker neutral */
+
+            /* (Removed semantic success/danger variables) */
+            /* Button color aliases (use for controls, switches and action buttons) */
+            --btn-bg: #333; /* primary dark button background */
+            --btn-hover: #444; /* hover state for dark buttons */
+
+            /* Button sizing presets */
+            /* Typography */
+            --font-base: clamp(0.95rem, 0.9rem + 0.4vw, 1rem);
+
+            /* Button sizing (rem-based) */
+            --btn-height: 2.625rem; /* 42px */
+            --btn-padding: 0.625rem 1.25rem; /* 10px 20px */
+            --btn-font-size: 0.95rem;
+            --btn-radius: 0.375rem; /* 6px */
+
+            /* Neutral / primary aliases */
+            --btn-neutral-bg: var(--btn-bg);
+            --btn-neutral-hover: var(--btn-hover);
+            --btn-neutral-color: var(--notification-text);
+
+            /* UI pieces */
+            --input-bg: #1a1a1a;
+            --input-border: #333;
+            --card-bg: #222;
+            --card-hover: #333;
+            --upload-btn-bg: var(--btn-bg);
+            --upload-btn-hover: var(--btn-hover);
+
+            /* Buttons / controls */
+            --btn-primary-bg: #9e9e9e; /* Convert button gray */
+            --btn-primary-color: #111;
+            --btn-disabled-bg: #333;
+            --btn-disabled-color: #666;
+
+            /* Notification / shadows */
+            --notification-bg: var(--border-strong);
+            --notification-text: #e0e0e0;
+            /* Mid and small borders */
+            --border-mid: #555;
+            /* extra muted shades */
+            --muted-3: #777;
+            --bg-dark: #111;
+            --shadow: rgba(0,0,0,0.2);
         }
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
+        /* Fix for white background on overscroll */
+        html { background-color: var(--bg-strong); }
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            background: linear-gradient(180deg, #060606 0%, var(--bg) 100%);
-            color: #e8eef6;
+            background: linear-gradient(180deg, var(--bg-strong) 0%, var(--bg) 100%);
+            color: var(--text);
             min-height: 100vh;
-            padding: 18px;
+            padding: 1.125rem; /* 18px */
             line-height: 1.55;
             -webkit-font-smoothing:antialiased;
+            background-attachment: fixed;
+            font-size: var(--font-base);
         }
         .container {
             max-width: 1100px;
@@ -46,49 +106,49 @@
         }
         header {
             background: linear-gradient(90deg, rgba(255,255,255,0.02), rgba(0,0,0,0.06));
-            padding: 26px 22px;
+            padding: 1.625rem 1.375rem; /* 26px 22px */
             text-align: center;
             border-bottom: 1px solid rgba(255,255,255,0.03);
         }
         h1 {
-            font-size: 2rem;
-            margin-bottom: 6px;
-            color: #fff;
-            letter-spacing: 0.6px;
+            font-size: clamp(1.5rem, 1.2rem + 2vw, 2rem);
+            margin-bottom: 0.375rem; /* 6px */
+            color: var(--text-strong);
+            letter-spacing: 0.06rem;
         }
         .subtitle {
-            color: var(--muted);
+            color: var(--muted-2);
             font-size: 0.98rem;
         }
         .main-content {
-            padding: 26px;
+            padding: 1.625rem; /* 26px */
         }
         /* Converter type selector */
         .converter-type-selector {
-            background: #222;
-            padding: 20px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            border: 1px solid #333;
+            background: var(--panel-2);
+            padding: 1.25rem;
+            border-radius: 0.5rem;
+            margin-bottom: 1.25rem;
+            border: 1px solid var(--border-strong);
         }
         .converter-options {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-            margin-top: 15px;
+            grid-template-columns: repeat(auto-fit, minmax(12.5rem, 1fr));
+            gap: 0.9375rem; /* 15px */
+            margin-top: 0.9375rem;
         }
         .converter-option {
-            background: #2a2a2a;
-            padding: 20px;
-            border-radius: 6px;
-            border: 1px solid #333;
+            background: var(--panel-3);
+            padding: 1.25rem;
+            border-radius: 0.375rem;
+            border: 1px solid var(--border-strong);
             cursor: pointer;
             transition: all 0.3s ease;
             text-align: center;
         }
         .converter-option:hover {
-            background: #333;
-            border-color: #555;
+            background: var(--btn-hover);
+            border-color: var(--border-mid);
         }
         .converter-option.active {
             background: #333;
@@ -118,130 +178,177 @@
             display: block;
         }
         .upload-section {
-            border: 2px dashed #444;
-            border-radius: 8px;
-            padding: 40px;
+            border: 2px dashed var(--border-mid);
+            border-radius: 0.5rem;
+            padding: 2.5rem; /* 40px */
             text-align: center;
-            margin-bottom: 30px;
+            margin-bottom: 1.875rem; /* 30px */
             transition: all 0.3s ease;
-            background: #222;
+            background: var(--panel-2);
         }
         .upload-section.drag-over {
-            border-color: #666;
-            background: #2a2a2a;
+            border-color: var(--muted-2);
+            background: var(--panel-3);
         }
         .upload-icon {
             font-size: 4em;
-            color: #666;
-            margin-bottom: 20px;
+            color: var(--muted-2);
+            margin-bottom: 1.25rem;
             opacity: 0.7;
         }
         .file-input {
             display: none;
         }
-        .upload-btn {
-            background: #333;
-            color: #e0e0e0;
-            padding: 12px 30px;
-            border: 1px solid #555;
-            border-radius: 6px;
-            font-size: 1.1em;
+        /* Consistent Button Styles */
+        .upload-btn, .convert-btn, .copy-all-btn, .toggle-separator-btn, .toggle-all-btn, .remove-result-btn,
+        .copy-btn, .copy-presentation-btn, .file-action-btn, .undo-btn {
+            padding: var(--btn-padding);
+            border-radius: var(--btn-radius);
+            font-size: var(--btn-font-size);
             cursor: pointer;
-            transition: all 0.3s ease;
-            margin: 10px;
+            transition: all 0.2s ease;
+            border: 1px solid transparent;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            height: var(--btn-height); /* Enforce consistent height */
+            min-height: var(--btn-height);
         }
-        .upload-btn:hover {
-            background: #444;
-            border-color: #666;
+
+        /* Neutral button style (default for most controls) */
+        .btn-neutral, .upload-btn, .copy-btn, .copy-presentation-btn, .copy-all-btn, .undo-btn, .file-action-btn {
+            background: var(--btn-neutral-bg);
+            color: var(--btn-neutral-color);
+            border-color: rgba(255,255,255,0.02);
         }
+        .btn-neutral:hover, .upload-btn:hover, .copy-btn:hover, .copy-presentation-btn:hover, .copy-all-btn:hover, .undo-btn:hover {
+            background: var(--btn-neutral-hover);
+        }
+        
         .or-text {
-            margin: 15px 0;
-            color: #666;
+            margin: 0.9375rem 0;
+            color: var(--muted-2);
             font-weight: bold;
         }
+
         /* File preview area */
         .file-preview,
         .image-preview-container {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-            gap: 15px;
-            margin-bottom: 30px;
+            grid-template-columns: repeat(auto-fill, minmax(10rem, 1fr));
+            gap: 0.9375rem;
+            margin-bottom: 1.875rem;
+            position: relative;
         }
         .preview-item {
             position: relative;
-            border-radius: 8px;
+            border-radius: 0.5rem;
             overflow: hidden;
-            border: 1px solid #333;
-            background: #222;
-            padding: 15px;
+            border: 1px solid var(--border-strong);
+            background: var(--card-bg);
+            padding: 0.625rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
         .preview-item img {
             width: 100%;
-            height: 120px;
+            height: 6.25rem; /* 100px */
             object-fit: cover;
-            border-radius: 4px;
+            border-radius: 0.25rem;
+            margin-bottom: 0.5rem;
+            background: var(--bg-dark);
         }
         .preview-icon {
-            font-size: 3em;
+            font-size: 2.5em;
             text-align: center;
-            margin-bottom: 10px;
+            margin-bottom: 5px;
             color: #888;
-        }
-        .preview-info {
-            padding: 10px;
-            font-size: 0.8em;
-            color: #888;
-            text-align: center;
-        }
-        .remove-btn {
-            position: absolute;
-            top: 5px;
-            right: 5px;
-            background: #555;
-            color: white;
-            border: none;
-            border-radius: 50%;
-            width: 25px;
-            height: 25px;
-            cursor: pointer;
-            font-size: 14px;
+            height: 100px;
             display: flex;
             align-items: center;
             justify-content: center;
         }
-        /* Convert button */
-        .convert-btn {
-            background: #555;
-            color: white;
-            padding: 15px 40px;
+        .preview-info {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-align: center;
+            word-break: break-all;
+            line-height: 1.3;
+        }
+        .remove-btn {
+            position: absolute;
+            top: 0.3125rem;
+            right: 0.3125rem;
+            background: var(--btn-bg);
+            color: var(--notification-text);
             border: none;
-            border-radius: 6px;
-            font-size: 1.2em;
+            border-radius: 50%;
+            width: 1.375rem;
+            height: 1.375rem;
             cursor: pointer;
-            transition: all 0.3s ease;
-            display: block;
-            margin: 0 auto 30px;
+            font-size: 0.875rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.15s ease;
+        }
+        .remove-btn:hover { background: var(--btn-hover); }
+
+        /* Clear All Card */
+        .clear-all-card {
+            border: 1px dashed var(--border-mid);
+            background: rgba(255,255,255,0.03);
+            cursor: pointer;
+            justify-content: center;
+            min-height: 10rem; /* ~160px */
+            transition: all 0.2s ease;
+        }
+        .clear-all-card:hover {
+            background: rgba(255,255,255,0.03);
+            border-color: var(--btn-hover);
+            color: var(--btn-hover);
+        }
+        .clear-all-content { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: var(--muted-2); }
+        .clear-all-card:hover .clear-all-content {
+            color: var(--btn-hover);
+        }
+        .clear-icon {
+            color: var(--muted-2);
+        }
+        .clear-icon {
+            font-size: 2em;
+            margin-bottom: 8px;
+        }
+
+        /* Convert (primary) button */
+        .convert-btn {
+            background: var(--btn-primary-bg);
+            color: var(--btn-primary-color);
             font-weight: bold;
+            margin: 0 auto 1.875rem; /* 30px */
+            min-width: 12.5rem; /* 200px */
+            padding: 0.75rem 1.75rem;
+            height: calc(var(--btn-height) + 0.375rem);
+            border-radius: var(--btn-radius);
         }
         .convert-btn:hover:not(:disabled) {
-            background: #666;
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            background: var(--text-strong);
+            color: var(--btn-primary-color);
+            transform: translateY(-0.125rem);
+            box-shadow: 0 0.3125rem 0.9375rem rgba(255,255,255,0.1);
         }
         .convert-btn:disabled {
             background: #333;
+            color: #666;
             cursor: not-allowed;
             transform: none;
             box-shadow: none;
         }
         /* Method selector */
-        .method-selector {
-            background: #222;
-            padding: 20px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            border: 1px solid #333;
-        }
+        .method-selector { background: var(--panel-2); padding: 1.25rem; border-radius: 0.5rem; margin-bottom: 1.25rem; border: 1px solid var(--border-strong); }
         .method-options {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -295,13 +402,13 @@
         }
         .api-key-input {
             width: 100%;
-            padding: 12px;
-            background: #1a1a1a;
-            border: 1px solid #333;
-            border-radius: 6px;
-            color: #e0e0e0;
-            font-size: 1em;
-            margin-top: 10px;
+            padding: 0.75rem;
+            background: var(--input-bg);
+            border: 1px solid var(--border-strong);
+            border-radius: 0.375rem;
+            color: var(--notification-text);
+            font-size: 1rem;
+            margin-top: 0.625rem;
         }
         /* Secure Save Key Styles */
         .secure-save-container {
@@ -310,15 +417,9 @@
             margin-top: 12px;
             padding: 12px 0;
             gap: 12px;
+            flex-wrap: wrap;
         }
-        .toggle-switch {
-            position: relative;
-            display: inline-block;
-            width: 45px;
-            height: 24px;
-            margin: 0;
-            flex-shrink: 0;
-        }
+        .toggle-switch { position: relative; display: inline-block; width: 2.8125rem; height: 1.5rem; margin: 0; flex-shrink: 0; }
         .toggle-switch input {
             opacity: 0;
             width: 0;
@@ -335,26 +436,11 @@
             transition: .4s;
             border-radius: 20px;
         }
-        .slider:before {
-            position: absolute;
-            content: "";
-            height: 14px;
-            width: 14px;
-            left: 3px;
-            bottom: 3px;
-            background-color: white;
-            transition: .4s;
-            border-radius: 50%;
-        }
+        .slider:before { position: absolute; content: ""; height: 1rem; width: 1rem; left: 0.25rem; bottom: 0.25rem; background-color: white; transition: .4s; border-radius: 50%; }
         input:checked + .slider {
-            background-color: #666;
+            background-color: var(--btn-bg);
         }
-        input:focus + .slider {
-            box-shadow: 0 0 1px #666;
-        }
-        input:checked + .slider:before {
-            transform: translateX(20px);
-        }
+        input:checked + .slider:before { transform: translateX(1.3125rem); }
         .secure-label {
             font-size: 0.9em;
             color: #aaa;
@@ -363,15 +449,29 @@
             align-items: center;
             gap: 5px;
         }
-        .secure-badge {
-            background: #333;
-            color: #aaa;
-            font-size: 0.7em;
-            padding: 2px 6px;
-            border-radius: 4px;
-            border: 1px solid #555;
-            flex-shrink: 0;
+        .secure-badge { background: var(--border-strong); color: var(--text-muted); font-size: 0.7rem; padding: 0.125rem 0.375rem; border-radius: 0.25rem; border: 1px solid var(--border-mid); flex-shrink: 0; }
+        .api-key-status { font-size: 0.75rem; padding: 0.25rem 0.625rem; border-radius: 0.75rem; border: 1px solid var(--border-mid); flex-shrink: 0; display: flex; align-items: center; gap: 0.375rem; font-weight: bold; margin-left: auto; }
+        .api-key-status.active {
+            background: rgba(255,255,255,0.04);
+            color: var(--text-strong);
+            border-color: var(--border-strong);
         }
+        .api-key-status.saved {
+            /* visually same as active */
+            background: rgba(255,255,255,0.04);
+            color: var(--text-strong);
+            border-color: var(--border-strong);
+        }
+        .api-key-status.inactive {
+            background: #333;
+            color: #888;
+            border-color: #555;
+        }
+        .status-dot { width: 0.5rem; height: 0.5rem; border-radius: 50%; display: inline-block; }
+        .api-key-status.active .status-dot { background: var(--accent); }
+        .api-key-status.saved .status-dot { background: var(--accent); }
+        .api-key-status.inactive .status-dot { background: var(--muted-2); }
+
         .api-key-section {
             background: #2a2a2a;
             padding: 20px;
@@ -450,29 +550,9 @@
             margin-bottom: 8px;
         }
         /* Progress section */
-        .progress-section {
-            display: none;
-            text-align: center;
-            margin: 20px 0;
-            padding: 20px;
-            background: #222;
-            border-radius: 8px;
-            border: 1px solid #333;
-        }
-        .progress-bar {
-            width: 100%;
-            height: 8px;
-            background: #333;
-            border-radius: 4px;
-            overflow: hidden;
-            margin: 20px 0;
-        }
-        .progress-fill {
-            height: 100%;
-            background: #666;
-            width: 0%;
-            transition: width 0.3s ease;
-        }
+        .progress-section { display: none; text-align: center; margin: 1.25rem 0; padding: 1.25rem; background: var(--panel-2); border-radius: 0.5rem; border: 1px solid var(--border-strong); }
+        .progress-bar { width: 100%; height: 0.5rem; background: var(--border-strong); border-radius: 0.25rem; overflow: hidden; margin: 1.25rem 0; }
+        .progress-fill { height: 100%; background: var(--muted-2); width: 0%; transition: width 0.3s ease; }
         .status-text {
             color: #888;
             font-size: 0.9em;
@@ -491,11 +571,14 @@
             background: #222;
             border-radius: 8px;
             border: 1px solid #333;
+            flex-wrap: wrap;
+            gap: 10px;
         }
         .sort-controls {
             display: flex;
             align-items: center;
             gap: 10px;
+            flex-wrap: wrap;
         }
         .sort-select {
             padding: 8px 12px;
@@ -504,59 +587,41 @@
             border: 1px solid #333;
             border-radius: 4px;
             cursor: pointer;
+            height: 42px;
         }
         .toggle-separator-btn {
-            background: #555;
+            background: var(--btn-bg);
             color: white;
-            border: none;
-            padding: 8px 15px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 0.9em;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 5px;
         }
         .toggle-separator-btn:hover {
-            background: #666;
+            background: var(--btn-hover);
         }
         .toggle-separator-btn.active {
-            background: #777;
+            background: var(--btn-hover);
         }
         .file-action-btn {
-            background: #555;
+            background: var(--btn-bg);
             color: white;
             border: none;
-            padding: 8px 12px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 0.9em;
-            transition: all 0.3s ease;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            margin: 0 6px;
         }
         .file-action-btn:hover {
-            background: #666;
+            background: var(--btn-hover);
         }
         .toggle-all-btn {
-            background: #555;
+            background: var(--btn-bg);
             color: white;
-            border: none;
-            padding: 8px 15px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 0.9em;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 5px;
         }
         .toggle-all-btn:hover {
-            background: #666;
+            background: var(--btn-hover);
         }
+        .remove-result-btn {
+            background: var(--btn-bg);
+            color: white;
+        }
+        .remove-result-btn:hover {
+            background: var(--btn-hover);
+        }
+        
         /* Results grid */
         .results-grid {
             display: flex;
@@ -641,43 +706,16 @@
             margin-right: 10px;
         }
         /* Copy buttons */
-        .copy-btn {
-            background: #555;
-            color: white;
-            border: none;
-            padding: 8px 15px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 0.9em;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            white-space: nowrap;
-        }
-        .copy-btn:hover {
-            background: #666;
-        }
+        /* Copy buttons use neutral preset */
+        .copy-btn, .copy-btn.small { background: var(--btn-neutral-bg); color: var(--btn-neutral-color); }
+        .copy-btn:hover { background: var(--btn-neutral-hover); }
+        .copy-btn.small { padding: 6px 10px; font-size: 0.8em; height: calc(var(--btn-height) - 8px); }
         .copy-btn.small {
-            padding: 5px 10px;
+            padding: 6px 10px;
             font-size: 0.8em;
         }
-        .copy-presentation-btn {
-            background: #444;
-            color: white;
-            border: none;
-            padding: 8px 15px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 0.9em;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-        .copy-presentation-btn:hover {
-            background: #555;
-        }
+        .copy-presentation-btn { background: var(--btn-neutral-bg); color: var(--btn-neutral-color); }
+        .copy-presentation-btn:hover { background: var(--btn-neutral-hover); }
         /* Result text */
         .result-text {
             background: #1a1a1a;
@@ -715,42 +753,33 @@
             font-size: 0.9em;
             color: #888;
         }
-        /* Copy all section */
+        /* Copy all section (placed in results header) */
         .copy-all-section {
-            text-align: center;
-            margin: 20px 0;
             display: none;
+            margin: 0;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 0.5rem;
+        }
+        .copy-all-section.inline {
+            display: flex;
         }
         .copy-all-btn {
-            background: #444;
-            color: white;
-            padding: 12px 30px;
+            background: var(--btn-neutral-bg, #444);
+            color: var(--text, #fff);
             border: none;
+            padding: 0.55rem 0.9rem;
             border-radius: 6px;
-            font-size: 1.1em;
+            height: var(--btn-height, 2.6rem);
             cursor: pointer;
-            transition: all 0.3s ease;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
         }
         .copy-all-btn:hover {
-            background: #555;
+            background: var(--btn-neutral-hover, #555);
         }
         .copy-all-btn:disabled {
-            background: #333;
+            background: var(--btn-disabled-bg, #333);
             cursor: not-allowed;
-        }
-        /* Empty state */
-        .empty-state {
-            text-align: center;
-            padding: 40px;
-            color: #666;
-        }
-        .empty-state .icon {
-            font-size: 4em;
-            margin-bottom: 20px;
-            opacity: 0.5;
+            opacity: 0.9;
         }
         /* Error message */
         .error-message {
@@ -794,55 +823,63 @@
             border-radius: 6px;
             border: 1px solid #333;
         }
-        .remove-result-btn {
-            background: #555;
-            color: white;
-            border: none;
-            padding: 6px 12px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 0.85em;
-            transition: all 0.3s ease;
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-        }
-        .remove-result-btn:hover {
-            background: #666;
-        }
         .undo-section {
-            display: none;
-            margin: 15px 0;
-            padding: 12px 15px;
-            background: #2a2a2a;
-            border: 1px solid #444;
-            border-radius: 6px;
-            text-align: center;
+            position: fixed;
+            left: 50%;
+            bottom: 1.25rem; /* 20px */
+            transform: translateX(-50%) translateY(0.625rem);
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+            gap: 0.5rem;
+            padding: 0.5rem;
+            background: var(--panel-2);
+            border: 1px solid var(--border-mid);
+            border-radius: 0.5rem;
+            text-align: left;
+            max-width: 90vw;
+            width: min(720px, 90vw);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.45);
+            opacity: 0;
+            pointer-events: none;
+            transition: transform 0.25s ease, opacity 0.25s ease;
+            z-index: 1200;
         }
         .undo-section.show {
-            display: block;
+            opacity: 1;
+            pointer-events: auto;
+            transform: translateX(-50%) translateY(0);
         }
-        .undo-btn {
-            background: #555;
-            color: white;
-            border: none;
-            padding: 6px 15px;
-            border-radius: 4px;
+        .undo-entry {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.75rem;
+            padding: 0.375rem 0.5rem;
+            color: var(--text-muted);
+            background: transparent;
+        }
+        .undo-entry + .undo-entry { border-top: 1px dashed var(--border-mid); }
+        .undo-entry > span { flex: 1 1 auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .undo-controls { display: flex; gap: 0.5rem; flex-shrink: 0; }
+        .undo-dismiss {
+            background: transparent;
+            border: 1px solid transparent;
+            color: var(--muted-3);
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
             cursor: pointer;
-            font-size: 0.9em;
-            transition: all 0.3s ease;
-            margin-left: 10px;
         }
-        .undo-btn:hover {
-            background: #666;
-        }
+        .undo-dismiss:hover { background: rgba(255,255,255,0.02); color: var(--text); }
+        .undo-btn { background: var(--btn-neutral-bg); color: var(--btn-neutral-color); padding: 6px 12px; margin-left: 10px; }
+        .undo-btn:hover { background: var(--btn-neutral-hover); }
     </style>
 </head>
 <body>
     <div class="container">
         <header>
             <h1>VoidText</h1>
-            <p class="subtitle">Universal Text Converter - Extract text from Images, PowerPoint, and PDF files</p>
+            <p class="subtitle">Universal Text Extractor - Extract text from Images, PowerPoint and PDF files</p>
         </header>
         <div class="main-content">
             <div class="converter-type-selector">
@@ -866,38 +903,29 @@
                 </div>
             </div>
 
+            <!-- Global API Key Section - Always Visible -->
+            <div class="api-key-section" id="globalApiSection">
+                <label>API Key:</label>
+                <input type="password" id="globalApiKey" class="api-key-input"
+                       placeholder="Enter your OCR.space API key here..." oninput="handleKeyInput(this)">
+                <div class="secure-save-container">
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="globalSecureSave" onchange="toggleSecureSave(this)">
+                        <span class="slider"></span>
+                    </label>
+                    <label for="globalSecureSave" class="secure-label">
+                        Remember Key securely <span class="secure-badge">No Server</span>
+                    </label>
+                    <span class="api-key-status inactive" id="globalApiStatus">
+                        <span class="status-dot"></span>Not Active
+                    </span>
+                </div>
+                <div class="api-key-link">
+                    <a href="https://ocr.space/ocrapi" target="_blank">Get FREE API Key here</a>
+                </div>
+            </div>
+
             <div class="converter-section active" id="imageConverter">
-                <div class="api-key-section" id="imageApiSection">
-                    <label>API Key:</label>
-                    <input type="password" id="imageApiKey" class="api-key-input"
-                           placeholder="Enter your OCR.space API key here..." oninput="handleKeyInput(this)">
-                    <div class="secure-save-container">
-                        <label class="toggle-switch">
-                            <input type="checkbox" id="secureSaveCheckbox" onchange="toggleSecureSave()">
-                            <span class="slider"></span>
-                        </label>
-                        <label for="secureSaveCheckbox" class="secure-label">
-                            Remember Key securely <span class="secure-badge">No Server</span>
-                        </label>
-                    </div>
-                    <div class="api-key-link">
-                        For free testing, leave empty. <a href="https://ocr.space/ocrapi" target="_blank">Get FREE API Key here</a>
-                    </div>
-                </div>
-                <div class="instructions">
-                    <div class="instructions-header" onclick="toggleInstructions(this)">
-                        <h3>How to Use</h3>
-                        <span class="instructions-toggle collapsed">▼</span>
-                    </div>
-                    <div class="instructions-content collapsed">
-                        <ol>
-                            <li>Your images are processed offline on your device</li>
-                            <li>Upload images using drag & drop or file browser</li>
-                            <li>Click "Convert to Text" to extract text from all images</li>
-                            <li>Use "Copy Text" to copy individual results or "Copy All Text" for everything</li>
-                        </ol>
-                    </div>
-                </div>
                 <div class="method-selector">
                     <label><strong>Select Conversion Method:</strong></label>
                     <div class="method-options">
@@ -911,9 +939,6 @@
                             <div class="method-name">Cloud API (OCR)</div>
                             <div class="method-desc">Use OCR.space API for scanned images.</div>
                         </div>
-                    </div>
-                    <div class="conversion-method" id="imageCloudMethod">
-                        <label>Cloud OCR will use the API Key above when selected.</label>
                     </div>
                 </div>
                 <div class="upload-section" id="imageDropZone">
@@ -930,38 +955,6 @@
             </div>
 
             <div class="converter-section" id="powerpointConverter">
-                <div class="api-key-section" id="powerpointApiSection">
-                    <label>API Key:</label>
-                    <input type="password" id="powerpointApiKey" class="api-key-input"
-                           placeholder="Enter your OCR.space API key here..." oninput="handleKeyInput(this)">
-                    <div class="secure-save-container">
-                        <label class="toggle-switch">
-                            <input type="checkbox" id="powerpointSecureSave" onchange="toggleSecureSave()">
-                            <span class="slider"></span>
-                        </label>
-                        <label for="powerpointSecureSave" class="secure-label">
-                            Remember Key securely <span class="secure-badge">No Server</span>
-                        </label>
-                    </div>
-                    <div class="api-key-link">
-                        For free testing, leave empty. <a href="https://ocr.space/ocrapi" target="_blank">Get FREE API Key here</a>
-                    </div>
-                </div>
-                <div class="instructions">
-                    <div class="instructions-header" onclick="toggleInstructions(this)">
-                        <h3>How to Use</h3>
-                        <span class="instructions-toggle collapsed">▼</span>
-                    </div>
-                    <div class="instructions-content collapsed">
-                        <ol>
-                            <li>Upload your PowerPoint (.pptx) file using drag & drop or file browser</li>
-                            <li>Choose a conversion method (Client-side for immediate results or Cloud API for better accuracy)</li>
-                            <li>Click "Extract Text" to process the presentation</li>
-                            <li>View extracted text from each slide</li>
-                            <li>Use "Copy Text" on individual slides or "Copy All Slides" for entire presentation</li>
-                        </ol>
-                    </div>
-                </div>
                 <div class="method-selector">
                     <label><strong>Select Conversion Method:</strong></label>
                     <div class="method-options">
@@ -991,38 +984,6 @@
             </div>
 
             <div class="converter-section" id="pdfConverter">
-                <div class="api-key-section" id="pdfApiSection">
-                    <label>API Key:</label>
-                    <input type="password" id="pdfApiKey" class="api-key-input"
-                           placeholder="Enter your OCR.space API key here..." oninput="handleKeyInput(this)">
-                    <div class="secure-save-container">
-                        <label class="toggle-switch">
-                            <input type="checkbox" id="pdfSecureSave" onchange="toggleSecureSave()">
-                            <span class="slider"></span>
-                        </label>
-                        <label for="pdfSecureSave" class="secure-label">
-                            Remember Key securely <span class="secure-badge">No Server</span>
-                        </label>
-                    </div>
-                    <div class="api-key-link">
-                        For free testing, leave empty. <a href="https://ocr.space/ocrapi" target="_blank">Get FREE API Key here</a>
-                    </div>
-                </div>
-                <div class="instructions">
-                    <div class="instructions-header" onclick="toggleInstructions(this)">
-                        <h3>How to Use</h3>
-                        <span class="instructions-toggle collapsed">▼</span>
-                    </div>
-                    <div class="instructions-content collapsed">
-                        <ol>
-                            <li>Upload your PDF file using drag & drop or file browser</li>
-                            <li>Choose a conversion method (Client-side for immediate results or Cloud API for scanned PDFs)</li>
-                            <li>Click "Extract Text" to process the document</li>
-                            <li>View extracted text from each page</li>
-                            <li>Use "Copy Text" on individual pages or "Copy All Pages" for entire document</li>
-                        </ol>
-                    </div>
-                </div>
                 <div class="method-selector">
                     <label><strong>Select Conversion Method:</strong></label>
                     <div class="method-options">
@@ -1059,14 +1020,13 @@
                 </div>
                 <p class="status-text" id="statusText">Starting conversion...</p>
             </div>
-            <div style="display:flex; gap:10px; justify-content:center; margin-bottom:30px;">
+            
+            <div style="display:flex; justify-content:center; margin-bottom:30px;">
                 <button class="convert-btn" id="convertBtn" onclick="processFiles()" disabled>
                     Convert to Text
                 </button>
-                <button class="file-action-btn" id="clearFilesBtn" onclick="clearInputFiles()">
-                    Clear Input Files
-                </button>
             </div>
+
             <div class="stats" id="statsSection">
                 <div class="stat-item">
                     <div class="stat-value" id="totalItems">0</div>
@@ -1085,18 +1045,10 @@
                     <div class="stat-label">Files</div>
                 </div>
             </div>
-            <div class="copy-all-section" id="copyAllSection">
-                <button class="copy-all-btn" id="copyAllBtn" onclick="copyAllText()">
-                    Copy All Text
-                </button>
-            </div>
-            <div class="undo-section" id="undoSection">
-                <span id="undoText">Item removed</span>
-                <button class="undo-btn" onclick="undoLastRemove()">Undo</button>
-            </div>
+            <div class="undo-section" id="undoSection"></div>
             <div class="results-section" id="resultsSection">
                 <div class="results-controls">
-                    <h2 style="color: #fff;" id="resultsTitle">Extracted Text</h2>
+                    <h2 style="color: #fff; margin-right: auto;" id="resultsTitle">Extracted Text</h2>
                     <div class="sort-controls">
                         <label for="sortSelect">Sort by:</label>
                         <select id="sortSelect" class="sort-select" onchange="sortResults()">
@@ -1106,15 +1058,23 @@
                             <option value="size">File Size (Small to Large)</option>
                             <option value="sizeDesc">File Size (Large to Small)</option>
                         </select>
-                                <button class="toggle-separator-btn active" id="toggleSeparatorBtn" onclick="toggleSeparators()">
-                                    <span id="separatorText">Include Separators</span>
-                                </button>
-                                <button class="remove-result-btn" id="clearResultsBtn" onclick="clearAllResults()" title="Remove All Results">
-                                    Remove All Results
-                                </button>
-                                <button class="toggle-all-btn" id="toggleAllBtn" onclick="toggleAll()">
-                                    <span class="collapse-icon" id="toggleAllIcon">▼</span> Toggle All
-                                </button>
+                        <button class="toggle-separator-btn active" id="toggleSeparatorBtn" onclick="toggleSeparators()">
+                            <span id="separatorText">Include Separators</span>
+                        </button>
+                        <button class="remove-result-btn" id="clearResultsBtn" onclick="clearAllResults()" title="Remove All Results">
+                            Remove All Results
+                        </button>
+                        <button class="toggle-all-btn" id="toggleAllBtn" onclick="toggleAll()">
+                            <span class="collapse-icon" id="toggleAllIcon">▼</span> Toggle All
+                        </button>
+                    </div>
+                    <div class="copy-all-section inline" id="copyAllSection" aria-label="Copy and download all results">
+                        <button class="copy-all-btn" id="copyAllBtn" onclick="copyAllText()" title="Copy all extracted text">
+                            Copy All Text
+                        </button>
+                        <button class="copy-all-btn" id="downloadAllBtn" onclick="downloadAllText()" title="Download all extracted text as .txt">
+                            Download all-files.txt
+                        </button>
                     </div>
                 </div>
                 <div class="results-grid" id="resultsGrid"></div>
@@ -1129,6 +1089,9 @@
         // Global variables
         let currentType = 'image';
         let currentMethod = 'client';
+        // per-type store so switching converters preserves work
+        const filesByType = { image: [], powerpoint: [], pdf: [] };
+        const resultsByType = { image: [], powerpoint: [], pdf: [] };
         let files = [];
         let extractedResults = [];
         let separatorsEnabled = true;
@@ -1149,50 +1112,66 @@
             if (savedKey) {
                 const realKey = deobfuscateKey(savedKey);
                 if (realKey) {
-                    document.querySelectorAll('.api-key-input').forEach(input => input.value = realKey);
-                    // Ensure all converter secure-save checkboxes reflect stored key
-                    ['secureSaveCheckbox','powerpointSecureSave','pdfSecureSave'].forEach(id => {
-                        const el = document.getElementById(id);
-                        if (el) el.checked = true;
-                    });
+                    document.getElementById('globalApiKey').value = realKey;
+                    document.getElementById('globalSecureSave').checked = true;
                 }
             }
+            updateApiKeyStatus();
         };
 
         function handleKeyInput(inputElement) {
             const val = inputElement.value;
-            document.querySelectorAll('.api-key-input').forEach(inp => {
-                if (inp !== inputElement) inp.value = val;
-            });
-            if (document.getElementById('secureSaveCheckbox').checked || 
-                document.getElementById('powerpointSecureSave').checked ||
-                document.getElementById('pdfSecureSave').checked) {
-                localStorage.setItem(SECURE_STORAGE_KEY, obfuscateKey(val));
+
+            // Check if secure save is enabled
+            const isSecureEnabled = document.getElementById('globalSecureSave').checked;
+            
+            if (isSecureEnabled) {
+                if (val.trim()) {
+                    localStorage.setItem(SECURE_STORAGE_KEY, obfuscateKey(val));
+                } else {
+                    localStorage.removeItem(SECURE_STORAGE_KEY);
+                }
+            }
+            
+            // Update status indicators
+            updateApiKeyStatus();
+        }
+
+        function updateApiKeyStatus() {
+            const status = document.getElementById('globalApiStatus');
+            const input = document.getElementById('globalApiKey');
+            const hasKey = input.value.trim().length > 0;
+            const isRemembered = localStorage.getItem(SECURE_STORAGE_KEY) !== null;
+            
+            if (status) {
+                status.classList.remove('active', 'saved', 'inactive');
+                if (isRemembered && hasKey) {
+                    status.classList.add('saved');
+                    status.innerHTML = '<span class="status-dot"></span> Saved';
+                } else if (hasKey) {
+                    status.classList.add('active');
+                    status.innerHTML = '<span class="status-dot"></span> Active';
+                } else {
+                    status.classList.add('inactive');
+                    status.innerHTML = '<span class="status-dot"></span> Not Active';
+                }
             }
         }
 
-        function toggleSecureSave() {
-            const checkboxes = [
-                document.getElementById('secureSaveCheckbox'),
-                document.getElementById('powerpointSecureSave'),
-                document.getElementById('pdfSecureSave')
-            ];
-            const isChecked = checkboxes.some(cb => cb && cb.checked);
-            const currentKey = document.getElementById('imageApiKey').value || 
-                             document.getElementById('powerpointApiKey').value ||
-                             document.getElementById('pdfApiKey').value;
+        function toggleSecureSave(clickedCheckbox) {
+            const isChecked = clickedCheckbox.checked;
+            const currentKey = document.getElementById('globalApiKey').value || '';
             
-            checkboxes.forEach(cb => {
-                if (cb) cb.checked = isChecked;
-            });
-            
-            if (isChecked && currentKey) {
+            if (isChecked && currentKey.trim()) {
                 localStorage.setItem(SECURE_STORAGE_KEY, obfuscateKey(currentKey));
                 showNotification('API Key saved securely to browser storage');
-            } else if (!isChecked) {
+            } else {
                 localStorage.removeItem(SECURE_STORAGE_KEY);
-                showNotification('Saved API Key removed');
+                if (!isChecked) {
+                    showNotification('Saved API Key removed (Key remains active until refresh)');
+                }
             }
+            updateApiKeyStatus();
         }
 
         function toggleInstructions(header) {
@@ -1202,7 +1181,7 @@
             content.classList.toggle('collapsed');
         }
 
-        // Ensure converter sections keep a consistent height to avoid layout jumps
+        // Ensure converter sections keep a consistent height
         function normalizeConverterHeights() {
             const sections = Array.from(document.querySelectorAll('.converter-section'));
             if (!sections.length) return;
@@ -1213,7 +1192,6 @@
                 if (getComputedStyle(sec).display === 'none') sec.style.display = 'block';
                 const h = sec.offsetHeight;
                 if (h > max) max = h;
-                // restore will happen after loop
             });
             sections.forEach(sec => {
                 sec.style.display = prevDisplays.get(sec);
@@ -1264,22 +1242,49 @@
         });
 
         function selectConverterType(type) {
+            // save current type state, then load new type state
+            if (type === currentType) return;
+            saveCurrentState();
             currentType = type;
-            // add active to target first to avoid brief no-active state
             const target = document.querySelector(`.converter-option[data-type="${type}"]`);
             if (target) target.classList.add('active');
-            document.querySelectorAll('.converter-option').forEach(opt => {
-                if (opt !== target) opt.classList.remove('active');
-            });
+            document.querySelectorAll('.converter-option').forEach(opt => { if (opt !== target) opt.classList.remove('active'); });
             document.querySelectorAll('.converter-section').forEach(sec => sec.classList.remove('active'));
             document.getElementById(type + 'Converter').classList.add('active');
-            resetState();
+            loadStateForType(type);
+        }
+
+        function saveCurrentState() {
+            try {
+                filesByType[currentType] = Array.isArray(files) ? files.slice() : [];
+                resultsByType[currentType] = Array.isArray(extractedResults) ? extractedResults.slice() : [];
+            } catch (e) { console.warn('saveCurrentState error', e); }
+        }
+
+        function loadStateForType(type) {
+            files = filesByType[type] ? filesByType[type].slice() : [];
+            extractedResults = resultsByType[type] ? resultsByType[type].slice() : [];
+            // refresh UI for loaded state
+            updatePreview();
+            updateConvertButton();
+            if (extractedResults && extractedResults.length > 0) {
+                resultsSection.style.display = 'block';
+                statsSection.style.display = 'flex';
+                copyAllSection.style.display = 'block';
+                renderGrid();
+                updateStats();
+            } else {
+                resultsSection.style.display = 'none';
+                statsSection.style.display = 'none';
+                copyAllSection.style.display = 'none';
+                renderGrid();
+                updateStats();
+            }
         }
 
         function selectMethod(method, type) {
             currentMethod = method;
             const methodOptions = Array.from(document.querySelectorAll(`#${type}Converter .method-option`));
-            // add active to matching option first, then remove from others
             const target = methodOptions.find(opt => opt.onclick && opt.onclick.toString().includes(`'${method}'`));
             if (target) target.classList.add('active');
             methodOptions.forEach(opt => { if (opt !== target) opt.classList.remove('active'); });
@@ -1315,14 +1320,17 @@
             files = [...files, ...validFiles];
             updatePreview();
             updateConvertButton();
+            saveCurrentState();
         }
 
         function updatePreview() {
             const container = previewAreas[currentType];
             container.innerHTML = '';
+            
+            // Render files
             files.forEach((file, index) => {
                 const div = document.createElement('div');
-                div.className = currentType === 'image' ? 'preview-item' : 'preview-item';
+                div.className = 'preview-item';
 
                 if (currentType === 'image') {
                     const reader = new FileReader();
@@ -1330,7 +1338,7 @@
                         div.innerHTML = `
                             <img src="${e.target.result}" alt="${file.name}">
                             <div class="preview-info">${file.name}<br>(${formatSize(file.size)})</div>
-                            <button class="remove-btn" onclick="removeFile(${index})">×</button>
+                            <button class="remove-btn" onclick="removeFile(${index})" title="Remove file">×</button>
                         `;
                     };
                     reader.readAsDataURL(file);
@@ -1339,21 +1347,37 @@
                     div.innerHTML = `
                         <div class="preview-icon">${icon}</div>
                         <div class="preview-info">${file.name}<br>(${formatSize(file.size)})</div>
-                        <button class="remove-btn" onclick="removeFile(${index})">×</button>
+                        <button class="remove-btn" onclick="removeFile(${index})" title="Remove file">×</button>
                     `;
                 }
                 container.appendChild(div);
             });
+
+            // Append "Clear All" Card if files exist
+            if (files.length > 0) {
+                const clearDiv = document.createElement('div');
+                clearDiv.className = 'preview-item clear-all-card';
+                clearDiv.onclick = clearInputFiles;
+                clearDiv.innerHTML = `
+                    <div class="clear-all-content">
+                        <div class="clear-icon">▢</div>
+                        <div>Clear Input Files</div>
+                    </div>
+                `;
+                container.appendChild(clearDiv);
+            }
         }
 
         function removeFile(index) {
             files.splice(index, 1);
             updatePreview();
             updateConvertButton();
+            saveCurrentState();
         }
 
         function updateConvertButton() {
             convertBtn.disabled = files.length === 0;
+            saveCurrentState();
         }
 
         function resetState() {
@@ -1388,6 +1412,8 @@
                 showError(error.message || 'An error occurred during conversion.');
             } finally {
                 convertBtn.disabled = false;
+                // persist current results/files for this converter type
+                saveCurrentState();
                 progressSection.style.display = 'none';
             }
         }
@@ -1404,6 +1430,7 @@
         async function processImagesOffline() {
             let completed = 0;
             updateProgress(0, `Processing 0/${files.length} images...`);
+            
             for (let i = 0; i < files.length; i++) {
                 const file = files[i];
                 try {
@@ -1431,8 +1458,7 @@
         }
 
         async function processImagesCloud() {
-            const apiKey = document.getElementById('imageApiKey').value.trim();
-            // API key is optional; if not provided, cloud will likely fail but we keep behavior consistent
+            const apiKey = document.getElementById('globalApiKey').value.trim();
             let completed = 0;
             updateProgress(0, `Processing 0/${files.length} images...`);
             for (let i = 0; i < files.length; i++) {
@@ -1462,27 +1488,22 @@
         }
 
         async function performOfflineOCR(file) {
-            return new Promise(async (resolve, reject) => {
-                try {
-                    const reader = new FileReader();
-                    reader.onload = async (e) => {
-                        try {
-                            const { data: { text } } = await Tesseract.recognize(
-                                e.target.result,
-                                'eng',
-                                { logger: m => updateProgress(m.progress * 100, `Scanning image: ${Math.round(m.progress * 100)}%`) }
-                            );
-                            resolve(text || "No text found.");
-                        } catch (err) {
-                            reject(new Error("OCR processing failed: " + err.message));
-                        }
-                    };
-                    reader.onerror = () => reject(new Error("Error reading file."));
-                    reader.readAsDataURL(file);
-                } catch (err) {
-                    reject(err);
-                }
-            });
+            // Simpler usage that avoids worker API mismatches across Tesseract builds.
+            // Create an object URL from the File and use Tesseract.recognize(), then cleanup.
+            const objectUrl = URL.createObjectURL(file);
+            try {
+                const { data: { text } } = await Tesseract.recognize(objectUrl, 'eng', {
+                    logger: m => {
+                        // Optional: connect progress messages to UI later (m.progress / m.status)
+                    }
+                });
+                URL.revokeObjectURL(objectUrl);
+                return text || "No text found.";
+            } catch (err) {
+                console.error(err);
+                URL.revokeObjectURL(objectUrl);
+                throw new Error("OCR Processing failed: " + (err && err.message ? err.message : err));
+            }
         }
 
         async function performOCR(file, apiKey) {
@@ -1587,7 +1608,7 @@
                     if (currentMethod === 'client') {
                         pages = await extractPDFClient(file);
                     } else {
-                        const hasKey = document.getElementById('pdfApiKey').value;
+                        const hasKey = document.getElementById('globalApiKey').value;
                         if (hasKey) {
                             throw new Error("Cloud PDF OCR is complex for a single-file demo. Please use Client-side method for text-based PDFs.");
                         } else {
@@ -1699,12 +1720,15 @@
                         </div>
                         <div class="presentation-buttons">
                             <span class="collapse-icon">▼</span>
-                            <button class="copy-presentation-btn" onclick="event.stopPropagation(); copyFileContent(${fileIndex})">
-                                Copy File Text
-                            </button>
-                            <button class="remove-result-btn" onclick="event.stopPropagation(); removeResult(${fileIndex})">
-                                Remove
-                            </button>
+                                <button class="copy-presentation-btn" onclick="event.stopPropagation(); copyFileContent(${fileIndex})">
+                                    Copy File Text
+                                </button>
+                                <button class="copy-presentation-btn" onclick="event.stopPropagation(); downloadFileContent(${fileIndex})">
+                                    Download file.txt
+                                </button>
+                                <button class="remove-result-btn" onclick="event.stopPropagation(); removeResult(${fileIndex})">
+                                    Remove
+                                </button>
                         </div>
                     </div>
                 `;
@@ -1812,6 +1836,34 @@
             navigator.clipboard.writeText(fullText).then(() => showNotification('File text copied!'));
         }
 
+        function downloadFileContent(fileIndex) {
+            const result = extractedResults[fileIndex];
+            if (!result) return showNotification('No file to download');
+            let fullText = separatorsEnabled ? `=== FILE: ${result.fileName} ===\n\n` : '';
+            result.content.forEach(item => {
+                if (separatorsEnabled) {
+                    const label = result.type === 'powerpoint' ? 'SLIDE' : (result.type === 'pdf' ? 'PAGE' : 'BLOCK');
+                    fullText += `--- ${label} ${item.id} ---\n`;
+                }
+                fullText += item.text + "\n\n";
+            });
+            const safeName = (result.fileName || 'file').replace(/[^a-z0-9_.-]/gi, '_');
+            const blob = new Blob([fullText], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${safeName}.txt`;
+            document.body.appendChild(a);
+            showNotification('Preparing download...');
+            a.click();
+            a.remove();
+            // Revoke the object URL slightly after triggering download to avoid race
+            setTimeout(() => {
+                try { URL.revokeObjectURL(url); } catch (e) {}
+                showNotification('Download started');
+            }, 800);
+        }
+
         function copyAllText() {
             let fullText = '';
             extractedResults.forEach(result => {
@@ -1828,6 +1880,32 @@
             navigator.clipboard.writeText(fullText).then(() => showNotification('All text copied!'));
         }
 
+        function downloadAllText() {
+            if (!extractedResults || extractedResults.length === 0) return showNotification('No text to download');
+            let fullText = '';
+            extractedResults.forEach(result => {
+                if (separatorsEnabled) fullText += `=== FILE: ${result.fileName} ===\n\n`;
+                result.content.forEach(item => {
+                    if (separatorsEnabled) {
+                        const label = result.type === 'powerpoint' ? 'SLIDE' : (result.type === 'pdf' ? 'PAGE' : 'BLOCK');
+                        fullText += `--- ${label} ${item.id} ---\n`;
+                    }
+                    fullText += item.text + "\n\n";
+                });
+                fullText += "\n";
+            });
+            const blob = new Blob([fullText], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'VoidText_All.txt';
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            URL.revokeObjectURL(url);
+            showNotification('Download started');
+        }
+
         function showNotification(msg) {
             const notif = document.getElementById('notification');
             notif.innerText = msg;
@@ -1840,31 +1918,26 @@
             
             // Store the removed item for undo
             const removedItem = extractedResults[fileIndex];
-            removedItems.push({
+            const entry = {
+                id: 'u' + Date.now() + Math.floor(Math.random() * 1000),
+                type: 'single',
                 item: removedItem,
-                index: fileIndex
-            });
+                index: fileIndex,
+                label: `"${removedItem.fileName}" removed`
+            };
+            // auto-expire this undo entry after 10s
+            entry.timeoutId = setTimeout(() => removeUndoEntryById(entry.id), 10000);
+            removedItems.push(entry);
 
             // Remove from results
             extractedResults.splice(fileIndex, 1);
-            
-            // Show undo section
-            const undoSection = document.getElementById('undoSection');
-            const undoText = document.getElementById('undoText');
-            undoText.textContent = `"${removedItem.fileName}" removed`;
-            undoSection.classList.add('show');
-            
-            // Hide undo section after 10 seconds
-            setTimeout(() => {
-                if (undoSection.classList.contains('show')) {
-                    undoSection.classList.remove('show');
-                    removedItems = [];
-                }
-            }, 10000);
+            // render stacked undo entries
+            renderUndoStack();
             
             // Re-render results
             renderGrid();
             updateStats();
+            saveCurrentState();
             
             // Hide results if no items left
             if (extractedResults.length === 0) {
@@ -1876,28 +1949,9 @@
 
         function undoLastRemove() {
             if (removedItems.length === 0) return;
-            
-            const { item, index } = removedItems.pop();
-            
-            // Restore the item
-            extractedResults.splice(index, 0, item);
-            
-            // Hide undo section if no more items to restore
-            if (removedItems.length === 0) {
-                document.getElementById('undoSection').classList.remove('show');
-            }
-            
-            // Show results sections if they were hidden
-            if (extractedResults.length > 0) {
-                resultsSection.style.display = 'block';
-                statsSection.style.display = 'flex';
-                copyAllSection.style.display = 'block';
-            }
-            
-            // Re-render results
-            renderGrid();
-            updateStats();
-            showNotification('Item restored!');
+            const last = removedItems[removedItems.length - 1];
+            if (!last) return;
+            undoSpecific(last.id);
         }
 
         function clearInputFiles() {
@@ -1905,16 +1959,17 @@
             files = [];
             Object.values(previewAreas).forEach(el => el.innerHTML = '');
             updateConvertButton();
+            saveCurrentState();
             showNotification('Input files cleared');
         }
 
         function clearAllResults() {
             if (extractedResults.length === 0) return showNotification('No results to remove');
 
-            // push all results to removedItems for undo (preserve indices)
-            for (let i = extractedResults.length - 1; i >= 0; i--) {
-                removedItems.push({ item: extractedResults[i], index: i });
-            }
+            // push the whole results as a single undo action (with id and timeout)
+            const entry = { id: 'u' + Date.now() + Math.floor(Math.random() * 1000), action: 'clearAll', items: extractedResults.slice(), label: 'All results removed' };
+            entry.timeoutId = setTimeout(() => removeUndoEntryById(entry.id), 10000);
+            removedItems.push(entry);
 
             // clear results
             extractedResults = [];
@@ -1926,20 +1981,99 @@
             statsSection.style.display = 'none';
             copyAllSection.style.display = 'none';
 
-            // show undo
-            const undoSection = document.getElementById('undoSection');
-            const undoText = document.getElementById('undoText');
-            undoText.textContent = `All results removed`;
-            undoSection.classList.add('show');
-
-            setTimeout(() => {
-                if (undoSection.classList.contains('show')) {
-                    undoSection.classList.remove('show');
-                    removedItems = [];
-                }
-            }, 10000);
+            // render stacked undo entries
+            renderUndoStack();
 
             showNotification('All results removed');
+        }
+
+        // Render the stacked undo entries into the undoSection
+        function renderUndoStack() {
+            const container = document.getElementById('undoSection');
+            container.innerHTML = '';
+            if (!removedItems || removedItems.length === 0) {
+                container.classList.remove('show');
+                return;
+            }
+
+            removedItems.forEach((entry, idx) => {
+                const div = document.createElement('div');
+                div.className = 'undo-entry';
+                div.dataset.uid = entry.id;
+                const text = document.createElement('span');
+                text.textContent = entry.label || (entry.action === 'clearAll' ? 'All results removed' : (entry.item && entry.item.fileName ? entry.item.fileName : 'Item removed'));
+                text.style.marginRight = '0.75rem';
+
+                const undoBtn = document.createElement('button');
+                undoBtn.className = 'undo-btn';
+                undoBtn.textContent = 'Undo';
+                undoBtn.onclick = () => undoSpecific(entry.id);
+
+                const dismissBtn = document.createElement('button');
+                dismissBtn.className = 'undo-dismiss';
+                dismissBtn.textContent = 'Dismiss';
+                dismissBtn.onclick = () => removeUndoEntryById(entry.id);
+
+                div.appendChild(text);
+                div.appendChild(undoBtn);
+                div.appendChild(dismissBtn);
+                container.appendChild(div);
+            });
+
+            container.classList.add('show');
+        }
+
+        // Remove a specific undo entry by its id (called on timeout or dismiss)
+        function removeUndoEntryById(id) {
+            const idx = removedItems.findIndex(e => e.id === id);
+            if (idx === -1) return;
+            const entry = removedItems[idx];
+            if (entry && entry.timeoutId) clearTimeout(entry.timeoutId);
+            removedItems.splice(idx, 1);
+            renderUndoStack();
+        }
+
+        // Undo a specific entry by id
+        function undoSpecific(id) {
+            const idx = removedItems.findIndex(e => e.id === id);
+            if (idx === -1) return;
+            const entry = removedItems[idx];
+            // clear any timeout
+            if (entry && entry.timeoutId) clearTimeout(entry.timeoutId);
+
+            // perform undo
+            if (entry.action === 'clearAll') {
+                const restored = Array.isArray(entry.items) ? entry.items.slice() : [];
+                extractedResults = restored;
+                // remove this entry and clear any others
+                removedItems = [];
+                renderGrid();
+                updateStats();
+                resultsSection.style.display = extractedResults.length ? 'block' : 'none';
+                statsSection.style.display = extractedResults.length ? 'flex' : 'none';
+                copyAllSection.style.display = extractedResults.length ? 'block' : 'none';
+                saveCurrentState();
+                renderUndoStack();
+                showNotification('All results restored!');
+                return;
+            }
+
+            // single item
+            if (entry.item) {
+                const insertIndex = (typeof entry.index === 'number') ? entry.index : extractedResults.length;
+                extractedResults.splice(insertIndex, 0, entry.item);
+            }
+
+            // remove the entry and re-render
+            removedItems.splice(idx, 1);
+            renderGrid();
+            updateStats();
+            saveCurrentState();
+            renderUndoStack();
+            resultsSection.style.display = 'block';
+            statsSection.style.display = 'flex';
+            copyAllSection.style.display = 'block';
+            showNotification('Item restored!');
         }
     </script>
 </body>

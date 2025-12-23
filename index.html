@@ -182,7 +182,7 @@
             border-radius: 0.5rem;
             padding: 2.5rem; /* 40px */
             text-align: center;
-            margin-bottom: 1.875rem; /* 30px */
+            margin-bottom: 0.625rem; /* 10px - reduced gap before preview */
             transition: all 0.3s ease;
             background: var(--panel-2);
         }
@@ -239,7 +239,7 @@
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(10rem, 1fr));
             gap: 0.9375rem;
-            margin-bottom: 1.875rem;
+            margin-block: 1.875rem;
             position: relative;
         }
         .preview-item {
@@ -335,7 +335,7 @@
             border-radius: var(--btn-radius);
         }
         .convert-btn:hover:not(:disabled) {
-            background: var(--text-strong);
+            background: #bbbbbb;
             color: var(--btn-primary-color);
             transform: translateY(-0.125rem);
             box-shadow: 0 0.3125rem 0.9375rem rgba(255,255,255,0.1);
@@ -438,7 +438,7 @@
         }
         .slider:before { position: absolute; content: ""; height: 1rem; width: 1rem; left: 0.25rem; bottom: 0.25rem; background-color: white; transition: .4s; border-radius: 50%; }
         input:checked + .slider {
-            background-color: var(--btn-bg);
+            background-color: #555;
         }
         input:checked + .slider:before { transform: translateX(1.3125rem); }
         .secure-label {
@@ -564,19 +564,35 @@
         }
         .results-controls {
             display: flex;
-            justify-content: space-between;
+            flex-direction: column;
             align-items: center;
             margin-bottom: 15px;
             padding: 15px;
             background: #222;
             border-radius: 8px;
             border: 1px solid #333;
+            gap: 12px;
+        }
+        .results-controls h2 {
+            margin: 0;
+            font-size: 1.3rem;
+            color: var(--text-strong, #fff);
+            font-weight: 600;
+            text-align: center;
+            width: 100%;
+        }
+        .results-actions {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
             flex-wrap: wrap;
-            gap: 10px;
+            width: 100%;
         }
         .sort-controls {
             display: flex;
             align-items: center;
+            justify-content: center;
             gap: 10px;
             flex-wrap: wrap;
         }
@@ -621,6 +637,31 @@
         .remove-result-btn:hover {
             background: var(--btn-hover);
         }
+        /* Presentation buttons (copy/download/remove) */
+        .presentation-buttons button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 38px;
+            height: 36px;
+            padding: 6px;
+            border-radius: 6px;
+            background: var(--btn-neutral-bg);
+            color: var(--btn-neutral-color);
+            border: 1px solid rgba(255,255,255,0.02);
+            cursor: pointer;
+        }
+        .presentation-buttons button:hover { background: var(--btn-neutral-hover); }
+        .presentation-buttons button svg { width: 18px; height: 18px; display: block; }
+        .presentation-buttons .remove-result-btn {
+            font-size: 1.2rem;
+            width: 42px;
+            height: 42px;
+            padding: 4px;
+            background: transparent;
+            border: 1px solid rgba(255,255,255,0.04);
+            color: var(--btn-neutral-color);
+        }
         
         /* Results grid */
         .results-grid {
@@ -650,8 +691,38 @@
         }
         .presentation-buttons {
             display: flex;
-            gap: 10px;
+            gap: 8px;
             align-items: center;
+            margin-left: auto; /* keep buttons right-aligned in header */
+        }
+
+        /* Make header allow wrapping; when space is constrained the two containers become stacked
+           (the containers change layout, not their internal children) */
+        .presentation-header { flex-wrap: wrap; }
+        @media (max-width: 720px) {
+            .presentation-header {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 8px;
+            }
+            /* presentation-info and presentation-buttons themselves become full-width containers
+               but keep their internal row layout so their children don't stack unexpectedly */
+            .presentation-info {
+                flex: 1 1 auto;
+                display: flex;
+                flex-direction: row;
+                align-items: center;
+                gap: 6px;
+            }
+            .presentation-buttons {
+                flex: 0 0 auto; /* don't stretch full-width */
+                display: flex;
+                flex-direction: row;
+                justify-content: flex-end;
+                gap: 6px;
+                margin-left: 0;
+                align-self: flex-end; /* ensure container sits to the right */
+            }
         }
         .file-counter {
             background: #333;
@@ -659,10 +730,12 @@
             padding: 2px 8px;
             border-radius: 12px;
             font-size: 0.8em;
+            flex: 0 0 auto;
         }
         .slides-container {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            /* allow tighter wrapping on small screens and let items flex */
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
             gap: 15px;
             margin-bottom: 30px;
             display: none;
@@ -670,6 +743,26 @@
         .slides-container.expanded {
             display: grid;
         }
+        .result-item-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+            min-height: 120px;
+        }
+        .result-item-wrapper .result-text {
+            flex: 1 1 auto;
+            max-height: 120px;
+            overflow: auto;
+            transition: none;
+        }
+        .result-item-wrapper.expanded .result-text {
+            /* expanded uses a viewport-relative cap so it doesn't grow too tall */
+            max-height: 40vh;
+        }
+        /* expand/collapse toggle button styling (shares button presets) */
+        .expand-item-btn { padding: 6px; width: 44px; height: calc(var(--btn-height) - 8px); display: inline-flex; align-items:center; justify-content:center; overflow: visible; border-radius: var(--btn-radius); }
+        .expand-item-btn svg { transition: none; width: 16px; height: 16px; display:block; overflow: visible; }
+        .expand-item-btn[aria-pressed="true"] svg { transform: none; }
         /* Result cards */
         .result-card {
             background: #222;
@@ -677,12 +770,16 @@
             padding: 20px;
             border: 1px solid #333;
             transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
         }
         .result-card:hover {
             border-color: #444;
             transform: translateY(-3px);
             box-shadow: 0 5px 15px rgba(0,0,0,0.2);
         }
+        /* removed dynamic margin so expand/collapse icon doesn't shift */
         .result-header {
             display: flex;
             justify-content: space-between;
@@ -733,14 +830,18 @@
         /* Stats */
         .stats {
             display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
             justify-content: space-around;
             margin: 20px 0;
-            padding: 20px;
+            padding: 16px;
             background: #222;
             border-radius: 8px;
             border: 1px solid #333;
             display: none;
+            align-items: center;
         }
+        .stat-item { flex: 1 1 120px; }
         .stat-item {
             text-align: center;
         }
@@ -792,10 +893,17 @@
             border: 1px solid #666;
         }
         /* Notification */
-        .notification {
+        .notification-container {
             position: fixed;
             top: 20px;
             right: 20px;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            pointer-events: none;
+        }
+        .notification {
             background: #333;
             color: #e0e0e0;
             padding: 15px 25px;
@@ -803,11 +911,20 @@
             border: 1px solid #555;
             box-shadow: 0 5px 15px rgba(0,0,0,0.3);
             transform: translateX(150%);
-            transition: transform 0.3s ease;
-            z-index: 1000;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+            pointer-events: auto;
+            min-width: 200px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
         .notification.show {
             transform: translateX(0);
+            opacity: 1;
+        }
+        .notification.fade-out {
+            transform: translateX(150%);
+            opacity: 0;
         }
         /* Collapse icon */
         .collapse-icon {
@@ -941,12 +1058,12 @@
                         </div>
                     </div>
                 </div>
-                <div class="upload-section" id="imageDropZone">
+                <div class="upload-section" id="imageDropZone" onclick="document.getElementById('imageFileInput').click()" style="cursor: pointer;">
                     <div class="upload-icon">□</div>
                     <h3>Drag & Drop Images Here</h3>
                     <p class="or-text">OR</p>
                     <input type="file" id="imageFileInput" class="file-input" accept="image/*" multiple>
-                    <button class="upload-btn" onclick="document.getElementById('imageFileInput').click()">
+                    <button class="upload-btn" onclick="event.stopPropagation(); document.getElementById('imageFileInput').click()">
                         Choose Images
                     </button>
                     <p style="color: #666; margin-top: 10px;">Supports: PNG, JPG, JPEG, GIF, BMP</p>
@@ -970,12 +1087,12 @@
                         </div>
                     </div>
                 </div>
-                <div class="upload-section" id="powerpointDropZone">
+                <div class="upload-section" id="powerpointDropZone" onclick="document.getElementById('powerpointFileInput').click()" style="cursor: pointer;">
                     <div class="upload-icon">◩</div>
                     <h3>Drag & Drop PowerPoint Files Here</h3>
                     <p class="or-text">OR</p>
                     <input type="file" id="powerpointFileInput" class="file-input" accept=".pptx,.ppt" multiple>
-                    <button class="upload-btn" onclick="document.getElementById('powerpointFileInput').click()">
+                    <button class="upload-btn" onclick="event.stopPropagation(); document.getElementById('powerpointFileInput').click()">
                         Choose PowerPoint Files
                     </button>
                     <p style="color: #666; margin-top: 10px;">Supports: PPTX, PPT</p>
@@ -999,12 +1116,12 @@
                         </div>
                     </div>
                 </div>
-                <div class="upload-section" id="pdfDropZone">
+                <div class="upload-section" id="pdfDropZone" onclick="document.getElementById('pdfFileInput').click()" style="cursor: pointer;">
                     <div class="upload-icon">▭</div>
                     <h3>Drag & Drop PDF Files Here</h3>
                     <p class="or-text">OR</p>
                     <input type="file" id="pdfFileInput" class="file-input" accept=".pdf" multiple>
-                    <button class="upload-btn" onclick="document.getElementById('pdfFileInput').click()">
+                    <button class="upload-btn" onclick="event.stopPropagation(); document.getElementById('pdfFileInput').click()">
                         Choose PDF Files
                     </button>
                     <p style="color: #666; margin-top: 10px;">Supports: PDF files</p>
@@ -1021,7 +1138,7 @@
                 <p class="status-text" id="statusText">Starting conversion...</p>
             </div>
             
-            <div style="display:flex; justify-content:center; margin-bottom:30px;">
+            <div style="display:flex; justify-content:center; margin-top: 60px; margin-bottom: 30px;">
                 <button class="convert-btn" id="convertBtn" onclick="processFiles()" disabled>
                     Convert to Text
                 </button>
@@ -1048,7 +1165,8 @@
             <div class="undo-section" id="undoSection"></div>
             <div class="results-section" id="resultsSection">
                 <div class="results-controls">
-                    <h2 style="color: #fff; margin-right: auto;" id="resultsTitle">Extracted Text</h2>
+                    <h2 id="resultsTitle">Extracted Text</h2>
+                    <div class="results-actions">
                     <div class="sort-controls">
                         <label for="sortSelect">Sort by:</label>
                         <select id="sortSelect" class="sort-select" onchange="sortResults()">
@@ -1070,20 +1188,28 @@
                     </div>
                     <div class="copy-all-section inline" id="copyAllSection" aria-label="Copy and download all results">
                         <button class="copy-all-btn" id="copyAllBtn" onclick="copyAllText()" title="Copy all extracted text">
-                            Copy All Text
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;vertical-align:middle;display:inline-block;" aria-hidden="true">
+                                <rect x="9" y="9" width="10" height="10" rx="2"></rect>
+                                <path d="M7 15H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h7a2 2 0 0 1 2 2v1"></path>
+                            </svg>
+                            All Text
                         </button>
                         <button class="copy-all-btn" id="downloadAllBtn" onclick="downloadAllText()" title="Download all extracted text as .txt">
-                            Download all-files.txt
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;vertical-align:middle;display:inline-block;" aria-hidden="true">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                                <polyline points="7 10 12 15 17 10" />
+                                <line x1="12" y1="15" x2="12" y2="3" />
+                            </svg>
+                            All Files
                         </button>
+                    </div>
                     </div>
                 </div>
                 <div class="results-grid" id="resultsGrid"></div>
             </div>
         </div>
     </div>
-    <div class="notification" id="notification">
-        Text copied to clipboard!
-    </div>
+    <div class="notification-container" id="notificationContainer"></div>
 
     <script>
         // Global variables
@@ -1187,6 +1313,8 @@
             if (!sections.length) return;
             let max = 0;
             const prevDisplays = new Map();
+            // Reset minHeight first so we measure true content height, not cached minHeight
+            sections.forEach(sec => sec.style.minHeight = '');
             sections.forEach(sec => {
                 prevDisplays.set(sec, sec.style.display || '');
                 if (getComputedStyle(sec).display === 'none') sec.style.display = 'block';
@@ -1270,13 +1398,13 @@
             if (extractedResults && extractedResults.length > 0) {
                 resultsSection.style.display = 'block';
                 statsSection.style.display = 'flex';
-                copyAllSection.style.display = 'block';
+                copyAllSection.classList.add('inline');
                 renderGrid();
                 updateStats();
             } else {
                 resultsSection.style.display = 'none';
                 statsSection.style.display = 'none';
-                copyAllSection.style.display = 'none';
+                copyAllSection.classList.remove('inline');
                 renderGrid();
                 updateStats();
             }
@@ -1387,7 +1515,7 @@
             progressSection.style.display = 'none';
             resultsSection.style.display = 'none';
             statsSection.style.display = 'none';
-            copyAllSection.style.display = 'none';
+            copyAllSection.classList.remove('inline');
             Object.values(previewAreas).forEach(el => el.innerHTML = '');
             convertBtn.disabled = true;
         }
@@ -1689,7 +1817,7 @@
         function displayResults() {
             resultsSection.style.display = 'block';
             statsSection.style.display = 'flex';
-            copyAllSection.style.display = 'block';
+            copyAllSection.classList.add('inline');
             sortResults();
         }
 
@@ -1719,15 +1847,24 @@
                             <div class="file-counter">${result.content.length} ${result.type === 'image' ? 'Block' : (result.type === 'powerpoint' ? 'Slides' : 'Pages')}</div>
                         </div>
                         <div class="presentation-buttons">
-                            <span class="collapse-icon">▼</span>
-                                <button class="copy-presentation-btn" onclick="event.stopPropagation(); copyFileContent(${fileIndex})">
-                                    Copy File Text
+                            <button class="file-action-btn collapse-toggle" onclick="event.stopPropagation(); toggleFileExpansion(this.closest('.presentation-header'))" title="Toggle file" aria-label="Toggle file">
+                                <span class="collapse-icon">▼</span>
+                            </button>
+                                <button class="copy-presentation-btn" onclick="event.stopPropagation(); copyFileContent(${fileIndex})" title="Copy file text to clipboard" aria-label="Copy file text">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                                        <rect x="9" y="9" width="10" height="10" rx="2" />
+                                        <path d="M7 15H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h7a2 2 0 0 1 2 2v1" />
+                                    </svg>
                                 </button>
-                                <button class="copy-presentation-btn" onclick="event.stopPropagation(); downloadFileContent(${fileIndex})">
-                                    Download file.txt
+                                <button class="copy-presentation-btn" onclick="event.stopPropagation(); downloadFileContent(${fileIndex})" title="Download file as .txt" aria-label="Download file">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                                        <polyline points="7 10 12 15 17 10" />
+                                        <line x1="12" y1="15" x2="12" y2="3" />
+                                    </svg>
                                 </button>
-                                <button class="remove-result-btn" onclick="event.stopPropagation(); removeResult(${fileIndex})">
-                                    Remove
+                                <button class="remove-result-btn" onclick="event.stopPropagation(); removeResult(${fileIndex})" title="Remove this file" aria-label="Remove file">
+                                    <span style="font-size:1.25rem; line-height:1;">×</span>
                                 </button>
                         </div>
                     </div>
@@ -1742,15 +1879,25 @@
                         iconOrImg = `<img src="${url}" style="width: 50px; height: 50px; object-fit: cover; margin-right: 10px; border-radius: 4px;">`;
                     }
                     contentHtml += `
-                        <div class="result-item-wrapper">
-                            <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                        <div class="result-item-wrapper" data-file="${fileIndex}" data-item="${item.id}">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 5px; align-items:center;">
                                 <div class="slide-info">
                                     ${iconOrImg}
                                     <span class="slide-number">${itemLabel} ${item.id}</span>
                                 </div>
-                                <button class="copy-btn small" onclick="copyText('${escapeHtml(item.text)}')">
-                                    Copy
-                                </button>
+                                <div style="display:flex; gap:8px; align-items:center;">
+                                    <button class="copy-btn small" onclick="event.stopPropagation(); copyText('${escapeHtml(item.text)}')" title="Copy block text">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px;display:block;">
+                                            <rect x="9" y="9" width="10" height="10" rx="2"></rect>
+                                            <path d="M7 15H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h7a2 2 0 0 1 2 2v1"></path>
+                                        </svg>
+                                    </button>
+                                    <button class="file-action-btn small expand-item-btn" onclick="event.stopPropagation(); toggleItemExpand(this)" title="Expand block" aria-pressed="false">
+                                        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" style="width:16px;height:16px;display:block;" xmlns="http://www.w3.org/2000/svg">
+                                            <path d="M13 2H18M18 2V7M18 2L12 8M7 18H2M2 18V13M2 18L8 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                                        </svg>
+                                    </button>
+                                </div>
                             </div>
                             <div class="result-text">${escapeHtml(item.text)}</div>
                         </div>
@@ -1818,9 +1965,38 @@
         function copyText(text) {
             const unescaped = text.replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">")
                                   .replace(/&quot;/g, "\"").replace(/&#039;/g, "'");
-            navigator.clipboard.writeText(unescaped).then(() => {
-                showNotification('Text copied!');
-            });
+            // Try the modern clipboard API first, fall back to a hidden textarea for older contexts
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(unescaped).then(() => showNotification('Text copied!'))
+                    .catch(() => {
+                        // fallback
+                        const ta = document.createElement('textarea');
+                        ta.value = unescaped;
+                        ta.style.position = 'fixed'; ta.style.left = '-9999px';
+                        document.body.appendChild(ta);
+                        ta.select();
+                        try {
+                            document.execCommand('copy');
+                            showNotification('Text copied!');
+                        } catch (e) {
+                            showNotification('Copy failed');
+                        }
+                        ta.remove();
+                    });
+            } else {
+                const ta = document.createElement('textarea');
+                ta.value = unescaped;
+                ta.style.position = 'fixed'; ta.style.left = '-9999px';
+                document.body.appendChild(ta);
+                ta.select();
+                try {
+                    document.execCommand('copy');
+                    showNotification('Text copied!');
+                } catch (e) {
+                    showNotification('Copy failed');
+                }
+                ta.remove();
+            }
         }
 
         function copyFileContent(fileIndex) {
@@ -1854,7 +2030,6 @@
             a.href = url;
             a.download = `${safeName}.txt`;
             document.body.appendChild(a);
-            showNotification('Preparing download...');
             a.click();
             a.remove();
             // Revoke the object URL slightly after triggering download to avoid race
@@ -1906,11 +2081,35 @@
             showNotification('Download started');
         }
 
+        // Ensure copy buttons inside result items always show a notification and copy the visible text
+        document.body.addEventListener('click', (e) => {
+            const btn = e.target.closest('button.copy-btn.small');
+            if (!btn) return;
+            // only handle copy buttons inside result items
+            const wrapper = btn.closest('.result-item-wrapper');
+            if (!wrapper) return;
+            e.stopPropagation();
+            const textEl = wrapper.querySelector('.result-text');
+            const text = textEl ? textEl.innerText : '';
+            if (text) copyText(text);
+            else showNotification('Nothing to copy');
+        });
+
         function showNotification(msg) {
-            const notif = document.getElementById('notification');
-            notif.innerText = msg;
-            notif.classList.add('show');
-            setTimeout(() => notif.classList.remove('show'), 3000);
+            const container = document.getElementById('notificationContainer');
+            const notif = document.createElement('div');
+            notif.className = 'notification';
+            notif.textContent = msg;
+            container.appendChild(notif);
+            
+            // Trigger show animation
+            setTimeout(() => notif.classList.add('show'), 10);
+            
+            // Auto-remove after 3 seconds
+            const timeoutId = setTimeout(() => {
+                notif.classList.add('fade-out');
+                setTimeout(() => notif.remove(), 300);
+            }, 3000);
         }
 
         function removeResult(fileIndex) {
@@ -1943,7 +2142,7 @@
             if (extractedResults.length === 0) {
                 resultsSection.style.display = 'none';
                 statsSection.style.display = 'none';
-                copyAllSection.style.display = 'none';
+                copyAllSection.classList.remove('inline');
             }
         }
 
@@ -1979,7 +2178,7 @@
             // hide results UI
             resultsSection.style.display = 'none';
             statsSection.style.display = 'none';
-            copyAllSection.style.display = 'none';
+            copyAllSection.classList.remove('inline');
 
             // render stacked undo entries
             renderUndoStack();
@@ -2051,7 +2250,7 @@
                 updateStats();
                 resultsSection.style.display = extractedResults.length ? 'block' : 'none';
                 statsSection.style.display = extractedResults.length ? 'flex' : 'none';
-                copyAllSection.style.display = extractedResults.length ? 'block' : 'none';
+                if (extractedResults.length) { copyAllSection.classList.add('inline'); } else { copyAllSection.classList.remove('inline'); }
                 saveCurrentState();
                 renderUndoStack();
                 showNotification('All results restored!');
@@ -2072,8 +2271,49 @@
             renderUndoStack();
             resultsSection.style.display = 'block';
             statsSection.style.display = 'flex';
-            copyAllSection.style.display = 'block';
+            copyAllSection.classList.add('inline');
             showNotification('Item restored!');
+        }
+
+        // Toggle expansion of a single result item's text area
+        function toggleItemExpand(button) {
+            const wrapper = button.closest('.result-item-wrapper');
+            if (!wrapper) return;
+            const isExpanded = wrapper.classList.toggle('expanded');
+            button.setAttribute('aria-pressed', isExpanded ? 'true' : 'false');
+            // Update button icon to show close vs expand (swap paths)
+            const svg = button.querySelector('svg');
+            if (!svg) return;
+                // Use the exact SVG shapes the user provided and create path(s) via namespace
+                svg.style.transform = 'none';
+                svg.setAttribute('viewBox', '0 0 20 20');
+                svg.setAttribute('width', '16');
+                svg.setAttribute('height', '16');
+                while (svg.firstChild) svg.removeChild(svg.firstChild);
+                const svgns = 'http://www.w3.org/2000/svg';
+                if (isExpanded) {
+                    // close icon (user-provided) — multiple segments in a single path
+                    const p = document.createElementNS(svgns, 'path');
+                    p.setAttribute('d', 'M3 12L8 12M8 12L8 17M8 12L2 18M16.9999 8.00024H11.9999M11.9999 8.00024V3.00024M11.9999 8.00024L17.9999 2.00024');
+                    p.setAttribute('stroke', 'currentColor');
+                    p.setAttribute('stroke-width', '1.5');
+                    p.setAttribute('stroke-linecap', 'round');
+                    p.setAttribute('stroke-linejoin', 'round');
+                    p.setAttribute('fill', 'none');
+                    svg.appendChild(p);
+                    button.title = 'Collapse block';
+                } else {
+                    // expand icon (user-provided)
+                    const p = document.createElementNS(svgns, 'path');
+                    p.setAttribute('d', 'M13 2H18M18 2V7M18 2L12 8M7 18H2M2 18V13M2 18L8 12');
+                    p.setAttribute('stroke', 'currentColor');
+                    p.setAttribute('stroke-width', '1.5');
+                    p.setAttribute('stroke-linecap', 'round');
+                    p.setAttribute('stroke-linejoin', 'round');
+                    p.setAttribute('fill', 'none');
+                    svg.appendChild(p);
+                    button.title = 'Expand block';
+                }
         }
     </script>
 </body>

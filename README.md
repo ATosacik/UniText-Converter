@@ -1,7 +1,7 @@
 # VoidTextExtractor
 
 **Universal Text Extractor** – Extract text from Images, PDFs, Documents and more.  
-Visit the website: [https://atosacik.github.io/Void-Text/](https://atosacik.github.io/Void-Text/)
+Visit the website: [https://atosacik.github.io/Void-Text/]([https://atosacik.github.io/Void-Text/](https://atosacik.github.io/void-text-extractor/))
 
 ---
 
